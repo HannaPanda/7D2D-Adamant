@@ -27,6 +27,22 @@ Editions are alternatives — a user installs **one**. They share block/material
 and differ only in `recipes.xml` (+ the survival-only `items.xml`, ore drops, icons,
 extra localization rows).
 
+## Docs map
+
+Detailed documentation lives in `docs/`:
+
+- [`docs/architecture/mechanisms.md`](docs/architecture/mechanisms.md) — how the three
+  custom mechanisms (tool-vs-weapon DLL, OcbCustomTextures texture, survival crafting chain)
+  are wired, with a file-to-mechanism map.
+- [`docs/conventions/modding.md`](docs/conventions/modding.md) — verified vanilla item names,
+  the Localization.csv RFC-CSV quoting rule, the item-icon convention, and the path/tooling
+  gotchas.
+- [`docs/build-and-release.md`](docs/build-and-release.md) — building the DLL and the Unity
+  bundle, regenerating art/localization, the tag-driven CI release, and the manual Nexus upload.
+
+Keep these in sync with the code: any change to behavior, structure or conventions updates the
+matching `docs/` file in the same commit.
+
 ## Environment (this machine)
 
 - **Game**: `C:\Steam\steamapps\common\7 Days To Die` — `Assembly-CSharp.dll` under
