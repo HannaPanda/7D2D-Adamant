@@ -10,5 +10,7 @@ Initial release for 7 Days to Die V3.0.
 - Custom purple crystalline `adamant` texture via OcbCustomTextures (works on all
   shapes and in the paint tool).
 - **Survival edition:** rare Adamant Ore (mining drop) → forge-smelted Adamant Ingot
-  → workbench block.
+  → workbench block. Custom 160×160 item icons for the ore and ingot.
 - **Creative edition:** 1 wood → block, backpack-craftable.
+- Localized into 13 languages (EN, DE, ES, FR, IT, JA, KO, PL, PT-BR, RU, TR,
+  ZH-Hans, ZH-Hant).

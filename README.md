@@ -8,6 +8,8 @@ A near-indestructible building block with a custom purple crystalline texture.
 - **10× steel** stability (`stability_glue` 3000), full explosion immunity.
 - Custom **`adamant`** opaque texture that works on the **full shape set**
   (`shapes="All"`) and is selectable in the **paint tool**.
+- Custom item icons for the ore and ingot; localized into **13 languages**
+  (EN, DE, ES, FR, IT, JA, KO, PL, PT-BR, RU, TR, ZH-Hans, ZH-Hant).
 
 Two editions are provided (install **one**):
 

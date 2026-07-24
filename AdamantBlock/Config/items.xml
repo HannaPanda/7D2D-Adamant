@@ -14,14 +14,14 @@
 
 		<item name="adamantOre">
 			<property name="Extends" value="resourceCoal"/>
-			<property name="CustomIconTint" value="9C6FC7"/>
+			<property name="CustomIcon" value="adamant_ore"/>
 			<property name="DescriptionKey" value="adamantOreDesc"/>
 			<property name="EconomicValue" value="75"/>
 		</item>
 
 		<item name="adamantIngot">
 			<property name="Extends" value="resourceForgedSteel"/>
-			<property name="CustomIconTint" value="9C6FC7"/>
+			<property name="CustomIcon" value="adamant_ingot"/>
 			<property name="DescriptionKey" value="adamantIngotDesc"/>
 			<property name="EconomicValue" value="250"/>
 		</item>
