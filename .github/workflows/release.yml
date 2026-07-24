@@ -1,0 +1,70 @@
+name: Release
+
+# Push a version tag (e.g. v1.0.1) to build the MO2/Vortex-installable zips
+# and publish them as a GitHub Release.
+#
+# Note: the workflow only PACKAGES the committed mod folders. It cannot compile
+# AdamantBlock.dll (needs the game's Assembly-CSharp.dll as a reference) nor build
+# Resources/adamant.unity3d (needs Unity), so those two binaries must stay committed
+# in the repo. Text config is validated for well-formedness before release.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate XML
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libxml2-utils
+          find AdamantBlock AdamantBlock-Creative -name '*.xml' -print0 \
+            | xargs -0 -I{} xmllint --noout "{}"
+          echo "All XML well-formed."
+
+      - name: Sanity-check installable structure
+        run: |
+          test -f AdamantBlock/ModInfo.xml
+          test -f AdamantBlock/AdamantBlock.dll
+          test -f AdamantBlock/Resources/adamant.unity3d
+          test -f AdamantBlock-Creative/ModInfo.xml
+          test -f AdamantBlock-Creative/AdamantBlock.dll
+          test -f AdamantBlock-Creative/Resources/adamant.unity3d
+          # meta.ini is MO2-internal and must never ship inside a release zip
+          ! find AdamantBlock AdamantBlock-Creative -name 'meta.ini' | grep -q .
+          echo "Structure OK."
+
+      - name: Package mod editions
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          mkdir -p dist
+          # zip from repo root so the mod folder (with ModInfo.xml) is the zip root,
+          # which is what MO2 and Vortex's 7D2D installer expect.
+          zip -r -X "dist/AdamantBlock-Survival-${TAG}.zip"  AdamantBlock
+          zip -r -X "dist/AdamantBlock-Creative-${TAG}.zip"  AdamantBlock-Creative
+          echo "--- zip contents (survival) ---"
+          unzip -l "dist/AdamantBlock-Survival-${TAG}.zip"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
+          body: |
+            7 Days to Die V3.0 — install **one** edition. Both require
+            [OcbCustomTextures](https://www.nexusmods.com/7daystodie/mods/2788)
+            and EasyAntiCheat **off** (Harmony DLL). Multiplayer: client + server.
+
+            - **Survival** — rare Adamant Ore → forge Adamant Ingot → block.
+            - **Creative** — 1 wood → block.
+
+            Installable with MO2 or Vortex (drop the zip in, or extract into `Mods/`).
