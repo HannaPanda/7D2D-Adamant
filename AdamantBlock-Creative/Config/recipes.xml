@@ -1,0 +1,11 @@
+<configs>
+
+	<!-- CREATIVE / cheat recipe: 1 wood => 1 Adamant block, craftable straight
+	     from the backpack. No ore/ingot gating. For builders and testing. -->
+	<append xpath="/recipes">
+		<recipe name="adamantShapes:VariantHelper" count="1" tags="packMuleCrafting">
+			<ingredient name="resourceWood" count="1"/>
+		</recipe>
+	</append>
+
+</configs>

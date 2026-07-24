@@ -1,0 +1,8 @@
+Key,File,Type,UsedInMainMenu,NoTranslate,KeepLoaded,english,Context / Alternate Text,german,spanish,french,italian,japanese,koreana,polish,brazilian,russian,turkish,schinese,tchinese
+adamantShapes:VariantHelper,blocks,Variant,,,,Adamant Block,,Adamant-Block,,,,,,,,,,,
+adamantBlockGroupDesc,blocks,Block,,,,Only tools can mine it. Weapons, zombies and explosions deal no damage. Extreme stability.,,Nur mit Werkzeugen abbaubar. Waffen, Zombies und Explosionen richten keinen Schaden an. Extreme Stabilitaet.,,,,,,,,,,,
+txName_adamant,painting,Block,,,,Adamant,,Adamant,,,,,,,,,,,
+adamantOre,items,Item,,,,Adamant Ore,,Adamant-Erz,,,,,,,,,,,
+adamantOreDesc,items,Item,,,,A rare crystalline ore. Smelt it with steel to refine Adamant.,,Seltenes kristallines Erz. Mit Stahl verhuettet ergibt es Adamant.,,,,,,,,,,,
+adamantIngot,items,Item,,,,Adamant Ingot,,Adamant-Barren,,,,,,,,,,,
+adamantIngotDesc,items,Item,,,,Refined Adamant. One ingot crafts one Adamant block.,,Verfeinertes Adamant. Ein Barren ergibt einen Adamant-Block.,,,,,,,,,,,

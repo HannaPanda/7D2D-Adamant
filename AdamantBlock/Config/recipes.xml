@@ -1,0 +1,28 @@
+<configs>
+
+	<!-- ================================================================
+	     SURVIVAL recipes.
+	     Step 1: smelt an Adamant Ingot at the forge (needs the crucible, i.e.
+	             steel-tier forge) from a steep pile of refined mats plus the
+	             rare Adamant Ore.
+	     Step 2: craft the Adamant block from 1 ingot at the workbench.
+	     Balance dial: bump the block recipe count (e.g. count="4") if 1 ingot
+	     per single block feels too steep for your playthrough.
+	     ================================================================ -->
+	<append xpath="/recipes">
+
+		<recipe name="adamantIngot" count="1" craft_area="forge" craft_time="60" craft_tool="toolForgeCrucible">
+			<ingredient name="resourceForgedSteel" count="25"/>
+			<ingredient name="resourceConcreteMix" count="20"/>
+			<ingredient name="resourceScrapPolymers" count="10"/>
+			<ingredient name="resourceScrapLead" count="5"/>
+			<ingredient name="adamantOre" count="1"/>
+		</recipe>
+
+		<recipe name="adamantShapes:VariantHelper" count="1" craft_area="workbench">
+			<ingredient name="adamantIngot" count="1"/>
+		</recipe>
+
+	</append>
+
+</configs>

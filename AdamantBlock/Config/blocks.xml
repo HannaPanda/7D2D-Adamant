@@ -1,0 +1,50 @@
+<configs>
+
+	<!-- ================================================================
+	     Adamant block, full shape set (shapes="All" auto-generates every
+	     shape: cube, ramp, plate, wedge, ... just like steelShapes).
+	     Modeled on the vanilla "steelShapes" master block.
+	     Texture 356 = steel look (change here to re-skin).
+	     ================================================================ -->
+	<append xpath="/blocks">
+		<block name="adamantShapes" shapes="All">
+			<property name="DescriptionKey" value="adamantBlockGroupDesc"/>
+			<property name="DisplayType" value="blockHardened"/>
+			<property name="Material" value="MAdamant_shapes"/>
+			<property name="Shape" value="New"/>
+			<!-- Custom opaque atlas texture "adamant", injected via OcbCustomTextures
+			     (see painting.xml). Works with the full shapes="All" set and paint tool.
+			     Needs Resources/adamant.unity3d present. If OcbCustomTextures is missing
+			     or the bundle is absent, revert this to a numeric index like "356". -->
+			<property name="Texture" value="adamant"/>
+			<property name="EconomicValue" value="50"/>
+			<property class="RepairItems">
+				<property name="resourceWood" value="1"/>
+			</property>
+			<drop event="Harvest" name="resourceWood" count="1" tag="allHarvest,perkJunkMiner"/>
+			<drop event="Destroy" count="0"/>
+			<property name="UpgradeSound" value="place_block_metal"/>
+			<property name="SoundPickup" value="steelblock_grab"/>
+			<property name="SoundPlace" value="steelblock_place"/>
+			<property name="SortOrder1" value="a010"/>
+			<property name="Group" value="Building,advBuilding"/>
+			<property name="FilterTags" value="MC_Shapes"/>
+		</block>
+	</append>
+
+	<!-- ================================================================
+	     Rare Adamant Ore source: a small chance to also yield 1 adamantOre
+	     when harvesting vanilla ore (deep veins). prob is per Harvest event.
+	     Tune prob up/down to make the survival material rarer/easier.
+	     ================================================================ -->
+	<append xpath="/blocks/block[@name='terrOreIron']">
+		<drop event="Harvest" name="adamantOre" count="1" prob="0.04" tag="allHarvest,perkJunkMiner"/>
+	</append>
+	<append xpath="/blocks/block[@name='terrOreLead']">
+		<drop event="Harvest" name="adamantOre" count="1" prob="0.04" tag="allHarvest,perkJunkMiner"/>
+	</append>
+	<append xpath="/blocks/block[@name='terrOreCoal']">
+		<drop event="Harvest" name="adamantOre" count="1" prob="0.04" tag="allHarvest,perkJunkMiner"/>
+	</append>
+
+</configs>

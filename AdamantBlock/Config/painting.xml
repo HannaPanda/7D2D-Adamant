@@ -1,0 +1,32 @@
+<configs>
+
+	<!-- ================================================================
+	     Custom opaque block texture for Adamant, injected into the block
+	     texture atlas by the OcbCustomTextures core mod (must be enabled).
+	     This makes the texture usable by the FULL shapes="All" set AND the
+	     paint tool - unlike a numeric vanilla atlas index.
+
+	     Requires a Unity AssetBundle at Resources/adamant.unity3d that
+	     contains two texture assets (512x512):
+	       adamant_diffuse : albedo, DXT1 (BC1), no alpha channel
+	       adamant_normal  : normal map, DXTnm
+	     The "Specular" (MOER: R=Metallic, G=AO, B=Emission, A=Roughness)
+	     is generated uniformly on the fly here, so no third texture is
+	     needed: metallic 0.7, AO 0.9, no emission, roughness 0.35.
+
+	     Block usage:  <property name="Texture" value="adamant"/>
+	     ================================================================ -->
+	<append xpath="/paints">
+		<opaque id="adamant" texture="txName_adamant" x="0" y="0" w="1" h="1" blockw="1" blockh="1">
+			<property name="Diffuse" value="#@modfolder:Resources/adamant.unity3d?adamant_diffuse"/>
+			<property name="Normal"  value="#@modfolder:Resources/adamant.unity3d?adamant_normal"/>
+			<property name="Specular" value="512:512:0.7:0.9:0:0.35"/>
+			<property name="PaintCost" value="1"/>
+			<property name="Group" value="txGroupMetal"/>
+			<property name="Material" value="metal"/>
+			<property name="GlobalUV" value="False"/>
+			<property name="SortIndex" value="255"/>
+		</opaque>
+	</append>
+
+</configs>

@@ -1,0 +1,31 @@
+<configs>
+
+	<!-- ================================================================
+	     Survival progression items for the Adamant block:
+	       adamantOre    - rare chunk, found while mining ore (see blocks.xml
+	                       Harvest-drop appends). Only used to smelt the ingot.
+	       adamantIngot  - refined bar, smelted at the forge from a steep pile
+	                       of mats + 1 adamantOre (see recipes.xml). One ingot
+	                       crafts one Adamant block.
+	     Both reuse a vanilla item as a base (mesh + icon) via Extends and are
+	     tinted purple to read as "adamant". Names/desc in Localization.csv.
+	     ================================================================ -->
+	<append xpath="/items">
+
+		<item name="adamantOre">
+			<property name="Extends" value="resourceCoal"/>
+			<property name="CustomIconTint" value="9C6FC7"/>
+			<property name="DescriptionKey" value="adamantOreDesc"/>
+			<property name="EconomicValue" value="75"/>
+		</item>
+
+		<item name="adamantIngot">
+			<property name="Extends" value="resourceForgedSteel"/>
+			<property name="CustomIconTint" value="9C6FC7"/>
+			<property name="DescriptionKey" value="adamantIngotDesc"/>
+			<property name="EconomicValue" value="250"/>
+		</item>
+
+	</append>
+
+</configs>

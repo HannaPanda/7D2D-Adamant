@@ -1,0 +1,4 @@
+Key,File,Type,UsedInMainMenu,NoTranslate,KeepLoaded,english,Context / Alternate Text,german,spanish,french,italian,japanese,koreana,polish,brazilian,russian,turkish,schinese,tchinese
+adamantShapes:VariantHelper,blocks,Variant,,,,Adamant Block,,Adamant-Block,,,,,,,,,,,
+adamantBlockGroupDesc,blocks,Block,,,,Only tools can mine it. Weapons, zombies and explosions deal no damage. Extreme stability.,,Nur mit Werkzeugen abbaubar. Waffen, Zombies und Explosionen richten keinen Schaden an. Extreme Stabilitaet.,,,,,,,,,,,
+txName_adamant,painting,Block,,,,Adamant,,Adamant,,,,,,,,,,,

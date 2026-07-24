@@ -1,0 +1,30 @@
+<configs>
+
+	<!-- ================================================================
+	     Adamant material.
+	     - Melee/entity damage is blocked by the Harmony DLL (AdamantBlock.dll),
+	       which zeroes any damage from a non-player source. Done in code so
+	       there is NO "keystone_impact_overlay" ping sound (that sound is
+	       hard-coded into the vanilla IgnoreDamageFromTag path, so we avoid it).
+	     - explosionresistance="1": explosion block-damage formula is
+	       (1 - explosionResistance) * ... , so at 1.0 the result is 0 =>
+	       full immunity to demolisher / cop / any explosion (no ping either).
+	     - stability_glue="3000": 10x steel (300). Mass=1 => max load-bearing.
+	     - MaxDamage/Hardness: normal, so the PLAYER can still mine it with tools.
+	     ================================================================ -->
+	<append xpath="/materials">
+		<material id="MAdamant_shapes">
+			<property name="damage_category" value="metal"/>
+			<property name="surface_category" value="metal"/>
+			<property name="forge_category" value="iron"/>
+			<property name="Hardness" type="float" value="1"/>
+			<property name="stepsound" value="metal"/>
+			<property name="stability_glue" value="3000"/>
+			<property name="Mass" type="int" value="1"/>
+			<property name="explosionresistance" value="1"/>
+			<property name="MaxDamage" value="500"/>
+			<property name="Experience" value="6"/>
+		</material>
+	</append>
+
+</configs>

@@ -1,0 +1,30 @@
+<configs>
+
+	<!-- ================================================================
+	     Adamant block, full shape set (shapes="All"). Identical to the
+	     survival edition MINUS the rare-ore Harvest drops (Creative has no
+	     adamantOre item). Custom "adamant" texture via OcbCustomTextures.
+	     ================================================================ -->
+	<append xpath="/blocks">
+		<block name="adamantShapes" shapes="All">
+			<property name="DescriptionKey" value="adamantBlockGroupDesc"/>
+			<property name="DisplayType" value="blockHardened"/>
+			<property name="Material" value="MAdamant_shapes"/>
+			<property name="Shape" value="New"/>
+			<property name="Texture" value="adamant"/>
+			<property name="EconomicValue" value="50"/>
+			<property class="RepairItems">
+				<property name="resourceWood" value="1"/>
+			</property>
+			<drop event="Harvest" name="resourceWood" count="1" tag="allHarvest,perkJunkMiner"/>
+			<drop event="Destroy" count="0"/>
+			<property name="UpgradeSound" value="place_block_metal"/>
+			<property name="SoundPickup" value="steelblock_grab"/>
+			<property name="SoundPlace" value="steelblock_place"/>
+			<property name="SortOrder1" value="a010"/>
+			<property name="Group" value="Building,advBuilding"/>
+			<property name="FilterTags" value="MC_Shapes"/>
+		</block>
+	</append>
+
+</configs>
