@@ -1,4 +1,4 @@
-# Adamant Block — 7 Days to Die (V3.0)
+# Adamant Block - 7 Days to Die (V3.0)
 
 A near-indestructible building block with a custom purple crystalline texture.
 
@@ -20,10 +20,10 @@ Two editions are provided (install **one**):
 
 ## Requirements
 
-- **[OcbCustomTextures](https://www.nexusmods.com/7daystodie/mods/2788)** — **required.**
+- **[OcbCustomTextures](https://www.nexusmods.com/7daystodie/mods/2788)** - **required.**
   Injects the custom `adamant` texture into the block atlas. Without it the block
   still works but renders with a missing/placeholder texture.
-- **EasyAntiCheat must be OFF** — this mod ships a Harmony DLL
+- **EasyAntiCheat must be OFF** - this mod ships a Harmony DLL
   (`SkipWithAntiCheat` is set). Works in single-player and on private servers.
 - **Multiplayer:** install on **both client and server**.
 
@@ -36,22 +36,22 @@ Two editions are provided (install **one**):
 
 ## Survival progression
 
-1. **Adamant Ore** — small chance (`prob 0.04`) to drop while harvesting deep
+1. **Adamant Ore** - small chance (`prob 0.04`) to drop while harvesting deep
    ore veins (`terrOreIron` / `terrOreLead` / `terrOreCoal`).
-2. **Adamant Ingot** — smelted at the **forge** (crucible required):
+2. **Adamant Ingot** - smelted at the **forge** (crucible required):
    `25× Forged Steel + 20× Concrete Mix + 10× Scrap Polymers + 5× Scrap Lead + 1× Adamant Ore`.
-3. **Adamant Block** — crafted at the **workbench** from `1× Adamant Ingot`.
+3. **Adamant Block** - crafted at the **workbench** from `1× Adamant Ingot`.
 
 Tuning: raise the ore `prob` in `blocks.xml`, or bump the block recipe `count`
 in `recipes.xml`, to taste.
 
 ## How it works
 
-- **Tool-vs-weapon gate** — a Harmony patch (`AdamantBlock.dll`) on
+- **Tool-vs-weapon gate** - a Harmony patch (`AdamantBlock.dll`) on
   `Block.DamageBlock` / `OnBlockDamaged`. Non-player damage is always blocked;
   for a player it blocks the hit only when the held item carries the vanilla
   `weapon` tag (tools lack it). See `src/dll/AdamantBlockMod.cs`.
-- **Custom texture** — an `<opaque>` paint entry (`Config/painting.xml`) consumed
+- **Custom texture** - an `<opaque>` paint entry (`Config/painting.xml`) consumed
   by OcbCustomTextures, backed by `Resources/adamant.unity3d`
   (512² `adamant_diffuse` DXT1 + `adamant_normal` DXTnm).
 
@@ -74,9 +74,9 @@ into `Assets/Editor`, then **7DTD ▸ Build Adamant Bundle**. Place the resultin
 
 ## Credits
 
-- **OcbCustomTextures** by OCB (Marc Streckfuß) — custom block texture framework.
+- **OcbCustomTextures** by OCB (Marc Streckfuß) - custom block texture framework.
 - Harmony by pardeike.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

@@ -1,4 +1,4 @@
-# Architecture — the three custom mechanisms
+# Architecture - the three custom mechanisms
 
 The mod combines a Harmony DLL, an OcbCustomTextures paint entry, and vanilla XML
 crafting. Each mechanism is independent; they only meet on the `adamantShapes` block.
@@ -17,7 +17,7 @@ decides per hit:
   mine normally; guns and melee weapons carry it, so they do zero damage.
 
 Blocking a hit means setting `__result` to the current `BlockValue.damage` (unchanged) and
-skipping the original method — no damage, no destroy, no impact ping.
+skipping the original method - no damage, no destroy, no impact ping.
 
 Explosions are handled separately by material `explosionresistance="1"` in `materials.xml`,
 not by the DLL.
@@ -44,11 +44,11 @@ Without OcbCustomTextures installed the block still loads, but the texture is mi
 
 Three XML files, survival edition only:
 
-- `Config/items.xml` — `adamantOre` (extends `resourceCoal`) and `adamantIngot` (extends
+- `Config/items.xml` - `adamantOre` (extends `resourceCoal`) and `adamantIngot` (extends
   `resourceForgedSteel`), each with a `CustomIcon` and a `DescriptionKey`.
-- `Config/blocks.xml` — appends a rare `adamantOre` Harvest drop (`prob="0.04"`) to
+- `Config/blocks.xml` - appends a rare `adamantOre` Harvest drop (`prob="0.04"`) to
   `terrOreIron`, `terrOreLead`, `terrOreCoal`.
-- `Config/recipes.xml` — `adamantIngot` at the forge (crucible required) from
+- `Config/recipes.xml` - `adamantIngot` at the forge (crucible required) from
   `25 resourceForgedSteel + 20 resourceConcreteMix + 10 resourceScrapPolymers + 5 resourceScrapLead + 1 adamantOre`;
   `adamantShapes:VariantHelper` at the workbench from `1 adamantIngot`.
 

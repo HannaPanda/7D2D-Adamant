@@ -60,11 +60,11 @@ jobs:
           files: dist/*.zip
           generate_release_notes: true
           body: |
-            7 Days to Die V3.0 — install **one** edition. Both require
+            7 Days to Die V3.0 - install **one** edition. Both require
             [OcbCustomTextures](https://www.nexusmods.com/7daystodie/mods/2788)
             and EasyAntiCheat **off** (Harmony DLL). Multiplayer: client + server.
 
-            - **Survival** — rare Adamant Ore → forge Adamant Ingot → block.
-            - **Creative** — 1 wood → block.
+            - **Survival** - rare Adamant Ore → forge Adamant Ingot → block.
+            - **Creative** - 1 wood → block.
 
             Installable with MO2 or Vortex (drop the zip in, or extract into `Mods/`).

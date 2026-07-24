@@ -43,7 +43,7 @@ remove them or the release zips would be incomplete.
 
 ## Nexus upload
 
-Manual — there is no upload API or CLI. Upload the survival zip as the main file and the
+Manual - there is no upload API or CLI. Upload the survival zip as the main file and the
 creative zip as an optional file. List OcbCustomTextures (Nexus mod 2788) as a requirement,
 disclose that the mod contains a DLL, and note that EasyAntiCheat must be off and that
 multiplayer needs it on client and server.
