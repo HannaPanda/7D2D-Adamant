@@ -2,9 +2,9 @@
 <xml>
 	<Name value="AdamantBlock" />
 	<DisplayName value="Adamant Block" />
-	<Description value="Near-indestructible building block: takes zero damage from zombies, animals, explosions and player WEAPONS. Only mineable with tools. 10x steel stability. Custom purple crystalline texture (needs OcbCustomTextures). Survival edition gates it behind a forge-smelted Adamant Ingot from a rare Adamant Ore." />
+	<Description value="Near-indestructible building block and spike trap: they take zero damage from zombies, animals, explosions and player WEAPONS. Only mineable with tools. 10x steel stability. Custom purple crystalline texture (needs OcbCustomTextures). Survival edition gates them behind an Adamant Ingot crafted from a rare Adamant Ore." />
 	<Author value="Hanna" />
-	<Version value="1.0.0.0" />
+	<Version value="1.1.0.0" />
 	<Website value="https://github.com/HannaPanda/7D2D-Adamant" />
 	<SkipWithAntiCheat value="true" />
 </xml>

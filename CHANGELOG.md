@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0 - 2026-07-25
+
+### Fixed
+
+- **Adamant Ingot could be crafted for free, one at a time.** The recipe was a
+  `craft_area="forge"` recipe with ordinary item ingredients. The forge resolves and
+  deducts ingredients through its molten-material grid (iron/brass/lead/glass/stone/clay
+  only), so the ingredients were never found there: the craft count clamped to 1 and
+  nothing was deducted, while the "do you have the items" check passed against the
+  backpack. Moved to the workbench, which resolves against the player inventory. The
+  crucible gate is unchanged - `resourceForgedSteel` already requires it.
+
+- **Adamant Spikes Trap** (`adamantSpikesTrap`), both editions. 60 damage per hit
+  (1.8× the vanilla iron spike) every 1.5 s, takes zero self-damage when it hurts
+  something, and inherits the tool-vs-weapon gate from the existing material - immune
+  to zombies, weapons and explosions, removable only with tools. Deliberately carries
+  no `BlockTag="Spike"`, which is what makes it demolisher-proof. Reuses the vanilla
+  iron-spike model tinted to the adamant purple, so no new art ships.
+  Survival: 2 Adamant Ingots at the workbench, 1 refunded on harvest.
+  Creative: 1 wood, backpack-craftable.
+
 ## 1.0.0 - 2026-07-24
 
 Initial release for 7 Days to Die V3.0.

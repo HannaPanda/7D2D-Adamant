@@ -2,16 +2,42 @@
 
 	<!-- ================================================================
 	     SURVIVAL recipes.
-	     Step 1: smelt an Adamant Ingot at the forge (needs the crucible, i.e.
-	             steel-tier forge) from a steep pile of refined mats plus the
-	             rare Adamant Ore.
+	     Step 1: press an Adamant Ingot at the WORKBENCH from a steep pile of
+	             refined mats plus the rare Adamant Ore.
 	     Step 2: craft the Adamant block from 1 ingot at the workbench.
 	     Balance dial: bump the block recipe count (e.g. count="4") if 1 ingot
 	     per single block feels too steep for your playthrough.
+
+	     WHY NOT THE FORGE (this was a real bug, do not "fix" it back):
+	     The forge block declares Modules="tools,output,fuel,material_input"
+	     with InputMaterials="iron,brass,lead,glass,stone,clay". Its
+	     XUiC_WorkstationMaterialInputGrid INHERITS from
+	     XUiC_WorkstationInputGrid, so the crafting code's
+	     GetChildByType<XUiC_WorkstationInputGrid>() finds it and routes ALL
+	     ingredient lookups through the molten-material pool - which can only
+	     ever contain those six materials. Consequences for a forge recipe
+	     using ordinary items:
+	       - XUiC_RecipeCraftCount.calcMaxCraftable counts 0 in the grid and
+	         then does Mathf.Clamp(0, 1, 10000) => the craft count sticks at 1.
+	       - ItemActionEntryCraft checks with
+	         PlayerInventory.HasItems(...) || grid.HasItems(...) (the backpack
+	         satisfies it) but removes with
+	         if (grid != null) grid.RemoveItems(...) => nothing is ever
+	         deducted, i.e. free crafting.
+	     That is why EVERY vanilla forge recipe ships as a pair: a
+	     material_based="true" tags="use_smelter" version using unit_* mats,
+	     and a tags="replace_smelter" version using real items. Ingredients
+	     like adamantOre / resourceConcreteMix / resourceScrapPolymers can
+	     never live in the forge pool, so this recipe belongs on a workstation
+	     whose Modules are output-only (workbench) - those resolve and deduct
+	     against the player inventory.
+	     The crucible gate is NOT lost: resourceForgedSteel itself is a forge
+	     recipe with craft_tool="toolForgeCrucible", so the 25 steel already
+	     require a steel-tier forge.
 	     ================================================================ -->
 	<append xpath="/recipes">
 
-		<recipe name="adamantIngot" count="1" craft_area="forge" craft_time="60" craft_tool="toolForgeCrucible">
+		<recipe name="adamantIngot" count="1" craft_area="workbench" craft_time="60">
 			<ingredient name="resourceForgedSteel" count="25"/>
 			<ingredient name="resourceConcreteMix" count="20"/>
 			<ingredient name="resourceScrapPolymers" count="10"/>
@@ -21,6 +47,16 @@
 
 		<recipe name="adamantShapes:VariantHelper" count="1" craft_area="workbench">
 			<ingredient name="adamantIngot" count="1"/>
+		</recipe>
+
+		<!-- Adamant Spikes Trap: 2 ingots. Priced against the fact that it
+		     NEVER wears out - a vanilla iron spike is a consumable worth
+		     ~198 total damage for 4 forged iron, this one is permanent
+		     infrastructure. Balance dial: drop to 1 if the ore grind (4% per
+		     ore Harvest, multiplied by VeinMiner rolling per block) makes a
+		     full perimeter feel out of reach. -->
+		<recipe name="adamantSpikesTrap" count="1" craft_area="workbench">
+			<ingredient name="adamantIngot" count="2"/>
 		</recipe>
 
 	</append>

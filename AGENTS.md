@@ -4,7 +4,7 @@ Onboarding for AI agents working on this repo. Read this first.
 
 ## What this project is
 
-A near-indestructible building block for **7 Days to Die V3.0** with three custom
+A near-indestructible building block for **7 Days to Die V3.0** with four custom
 mechanisms and two shippable editions.
 
 - **Tool-vs-weapon damage gate** (Harmony DLL): only tools mine it; weapons, zombies,
@@ -12,6 +12,18 @@ mechanisms and two shippable editions.
 - **Custom purple crystalline texture** on the full `shapes="All"` set, via the
   **OcbCustomTextures** core mod (required dependency).
 - **Survival crafting chain**: rare Adamant Ore → forge-smelted Adamant Ingot → block.
+- **Adamant Spikes Trap**: an indestructible, non-degrading spike trap. Pure XML - it
+  reuses the material, so the DLL gate covers it for free.
+
+New content goes **into this mod**, not into a companion mod: 7DTD 3.0.1 has no
+dependency system at all (`Mod`/`ModInfo` expose only Name/DisplayName/Description/
+Author/Version/Website), and a block referencing a missing material makes
+`BlocksFromXml.CreateBlock` throw, which aborts the whole blocks.xml load. Config file
+names are also fixed by the engine (`XmlPatcher.LoadAndPatchConfig` looks for
+`<mod>/Config/<vanilla-config-name>.xml`), so splitting buys no file organization
+either - separate features with comment banners inside the existing files. The one safe
+companion-mod shape is a patch that *only* does `<set>`/`<remove>` on existing elements:
+a non-matching xpath merely warns instead of throwing.
 
 ## Repository layout
 
@@ -90,12 +102,33 @@ matching `docs/` file in the same commit.
 1. Bump `<Version>` in **both** `ModInfo.xml`, update `CHANGELOG.md`.
 2. `git tag vX.Y.Z && git push origin vX.Y.Z`.
 3. CI validates XML, checks installable structure, builds MO2/Vortex zips (mod folder at
-   zip root, forward slashes) and publishes a GitHub Release with both zips.
+   zip root, forward slashes), publishes a GitHub Release with both zips, and then uploads
+   both to Nexus Mods.
+
+**Nexus automation** (Settings → Secrets and variables → Actions):
+
+| Kind | Name | Value |
+|---|---|---|
+| Secret | `NEXUSMODS_API_KEY` | personal API key |
+| Variable | `NEXUSMODS_FILE_ID_SURVIVAL` | Files tab → "API Info" on the mod page |
+| Variable | `NEXUSMODS_FILE_ID_CREATIVE` | ditto, Creative file entry |
+
+The tag becomes the Nexus version with the leading `v` stripped. Both upload steps are
+skipped while their variable is unset, so tagging works before the mod page exists —
+setting/clearing the variable is the on/off switch. Only the Survival step sets
+`update_mod_version`, so the mod page version tracks the main file.
 - CI **cannot** build `AdamantBlock.dll` (needs the game's `Assembly-CSharp.dll`) or
   `adamant.unity3d` (needs Unity) - those binaries stay committed. **Do not remove them.**
-- **Nexus upload is manual** - there is no upload API/CLI. Main file = Survival zip,
-  optional = Creative zip. List OcbCustomTextures as a requirement; disclose "contains DLL"
-  and "EAC must be off".
+- **Nexus upload: the FIRST one is manual, updates can be automated.** Nexus Mods has a v3
+  Upload API (open beta since ~2026-03) plus an official GitHub Action,
+  [`Nexus-Mods/upload-action`](https://github.com/Nexus-Mods/upload-action). Its OpenAPI
+  schema has **no endpoint that creates a mod page**, so the mod page and the initial file
+  entries still have to be made by hand on the website. After that,
+  `POST /mod-files/{id}/versions` (what the Action wraps, keyed by a `file_id` from the
+  Files tab → "API Info") can push new versions from CI. `POST /mod-files` additionally
+  creates a new *file entry* on an existing mod page.
+  Main file = Survival zip, optional = Creative zip. List OcbCustomTextures as a
+  requirement; disclose "contains DLL" and "EAC must be off".
 
 ## Gotchas (all verified on this machine)
 

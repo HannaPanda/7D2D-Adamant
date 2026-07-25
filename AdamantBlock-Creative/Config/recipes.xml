@@ -6,6 +6,9 @@
 		<recipe name="adamantShapes:VariantHelper" count="1" tags="packMuleCrafting">
 			<ingredient name="resourceWood" count="1"/>
 		</recipe>
+		<recipe name="adamantSpikesTrap" count="1" tags="packMuleCrafting">
+			<ingredient name="resourceWood" count="1"/>
+		</recipe>
 	</append>
 
 </configs>

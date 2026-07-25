@@ -33,6 +33,89 @@
 	</append>
 
 	<!-- ================================================================
+	     Adamant Spikes Trap. Class "TrunkTip" is the vanilla spike-trap
+	     class (BlockTrunkTip : BlockDamage); its ctor sets
+	     IsCheckCollideWithEntity, which is what makes the engine call
+	     OnEntityCollidedWithBlock at all.
+
+	     Damage=60           : 1.8x the iron spike (33). One hit lands per 30
+	                           game ticks = exactly 1.5 s (ticksPerSecond=20),
+	                           so ~40 DPS while something stands in it.
+	                           NOTE: that cooldown lives on the VICTIM and is
+	                           keyed by EnumDamageSource.External, shared by
+	                           EVERY BlockDamage block - stacking more spikes
+	                           does NOT stack damage, it only buys exposure
+	                           time via the slow.
+	     Damage_received=0   : the trap takes no damage from hurting things.
+	                           OnEntityCollidedWithBlock only calls DamageBlock
+	                           when the computed block damage is > 0, so this
+	                           alone makes it self-damage-free. Iron spikes by
+	                           contrast die after 6 hits (33 x 6 vs MaxDamage
+	                           200) - their lifetime output is ~198 damage.
+	     NO BlockTag="Spike" : deliberate. An IL sweep over every
+	                           Block::HasTag call shows BlockTags.Spike (6) is
+	                           read in exactly ONE place -
+	                           EntityAlive.CalculateBlockDamage - where
+	                           StompsSpikes entities (only zombieDemolition)
+	                           get 999 damage WITH bypassMaxDamage. Omitting
+	                           the tag is therefore free and makes the trap
+	                           demolisher-proof; it has no other effect.
+	     MovementFactor=0.25 : block-level property, overrides the material's
+	                           movement_factor. Slightly weaker than the iron
+	                           spike (0.18) on purpose, so adamant trades
+	                           "holds less well" for "hurts more, lasts
+	                           forever" instead of being better on every axis.
+	                           It also slows the player.
+	     Material            : reuses MAdamant_shapes, so the Harmony guard in
+	                           AdamantBlock.dll (which matches on the material
+	                           id) covers this block too - immune to zombies,
+	                           animals and player weapons, mineable by tools -
+	                           and explosionresistance="1" stops demolisher
+	                           blasts. No DLL change needed.
+	     TintColor           : BlockShapeModelEntity.CloneModel applies it when
+	                           alpha > 0, recoloring the reused vanilla iron
+	                           spike prefab to the adamant purple (#7B4FB0)
+	                           without any Unity work.
+	     ================================================================ -->
+	<append xpath="/blocks">
+		<block name="adamantSpikesTrap">
+			<property name="Class" value="TrunkTip"/>
+			<property name="Damage" value="60"/>
+			<property name="Damage_received" value="0"/>
+			<property name="MovementFactor" value="0.25"/>
+			<property name="DescriptionKey" value="adamantSpikesTrapDesc"/>
+			<property name="DisplayType" value="blockHardened"/>
+			<property name="Material" value="MAdamant_shapes"/>
+			<property name="Shape" value="ModelEntity"/>
+			<property name="Model" value="@:Entities/Traps/ironSpikesTrapPrefab.prefab"/>
+			<property name="TintColor" value="7B4FB0"/>
+			<property name="CustomIcon" value="trapSpikesScrapIronMaster"/>
+			<property name="CustomIconTint" value="7B4FB0"/>
+			<property name="ImposterExclude" value="true"/>
+			<property name="LightOpacity" value="6"/>
+			<property name="WaterFlow" value="permitted"/>
+			<property name="Collide" value="melee"/>
+			<property name="Path" value="solid"/>
+			<property name="IsTerrainDecoration" value="false"/>
+			<property name="EconomicValue" value="500"/>
+			<property name="SoundPickup" value="trapiron_grab"/>
+			<property name="SoundPlace" value="trapiron_place"/>
+			<property class="RepairItems">
+				<property name="adamantIngot" value="1"/>
+			</property>
+			<property name="UpgradeSound" value="place_block_metal"/>
+			<!-- Costs 2 ingots, refunds 1: a 50% relocation tax, so rebuilding
+			     your layout is not free but also not ruinous. -->
+			<drop event="Harvest" name="adamantIngot" count="1" tag="allHarvest,perkJunkMiner"/>
+			<drop event="Destroy" count="0"/>
+			<drop event="Fall" count="0"/>
+			<property name="SortOrder1" value="a011"/>
+			<property name="Group" value="Building,advBuilding"/>
+			<property name="FilterTags" value="MC_building,SC_traps"/>
+		</block>
+	</append>
+
+	<!-- ================================================================
 	     Rare Adamant Ore source: a small chance to also yield 1 adamantOre
 	     when harvesting vanilla ore (deep veins). prob is per Harvest event.
 	     Tune prob up/down to make the survival material rarer/easier.

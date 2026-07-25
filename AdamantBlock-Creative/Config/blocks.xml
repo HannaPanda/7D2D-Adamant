@@ -27,4 +27,46 @@
 		</block>
 	</append>
 
+	<!-- ================================================================
+	     Adamant Spikes Trap. Identical to the survival edition except that
+	     repair/harvest use wood instead of the (creative-absent) ingot.
+	     See the survival blocks.xml for the full rationale behind
+	     Damage / Damage_received / the deliberately missing BlockTag.
+	     ================================================================ -->
+	<append xpath="/blocks">
+		<block name="adamantSpikesTrap">
+			<property name="Class" value="TrunkTip"/>
+			<property name="Damage" value="60"/>
+			<property name="Damage_received" value="0"/>
+			<property name="MovementFactor" value="0.25"/>
+			<property name="DescriptionKey" value="adamantSpikesTrapDesc"/>
+			<property name="DisplayType" value="blockHardened"/>
+			<property name="Material" value="MAdamant_shapes"/>
+			<property name="Shape" value="ModelEntity"/>
+			<property name="Model" value="@:Entities/Traps/ironSpikesTrapPrefab.prefab"/>
+			<property name="TintColor" value="7B4FB0"/>
+			<property name="CustomIcon" value="trapSpikesScrapIronMaster"/>
+			<property name="CustomIconTint" value="7B4FB0"/>
+			<property name="ImposterExclude" value="true"/>
+			<property name="LightOpacity" value="6"/>
+			<property name="WaterFlow" value="permitted"/>
+			<property name="Collide" value="melee"/>
+			<property name="Path" value="solid"/>
+			<property name="IsTerrainDecoration" value="false"/>
+			<property name="EconomicValue" value="500"/>
+			<property name="SoundPickup" value="trapiron_grab"/>
+			<property name="SoundPlace" value="trapiron_place"/>
+			<property class="RepairItems">
+				<property name="resourceWood" value="1"/>
+			</property>
+			<property name="UpgradeSound" value="place_block_metal"/>
+			<drop event="Harvest" name="resourceWood" count="1" tag="allHarvest,perkJunkMiner"/>
+			<drop event="Destroy" count="0"/>
+			<drop event="Fall" count="0"/>
+			<property name="SortOrder1" value="a011"/>
+			<property name="Group" value="Building,advBuilding"/>
+			<property name="FilterTags" value="MC_building,SC_traps"/>
+		</block>
+	</append>
+
 </configs>

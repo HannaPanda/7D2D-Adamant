@@ -33,6 +33,29 @@ T = {
     "schinese":"只能用工具开采。武器、僵尸和爆炸都无法造成伤害。极高稳定性。",
     "tchinese":"只能用工具開採。武器、殭屍和爆炸都無法造成傷害。極高穩定性。"}),
 
+ "adamantSpikesTrap": ("blocks","Trap", {
+    "english":"Adamant Spikes Trap","german":"Adamant-Stachelfalle",
+    "spanish":"Trampa de pinchos de Adamant","french":"Piège à pieux en Adamant",
+    "italian":"Trappola con spuntoni di Adamant","japanese":"アダマントスパイクトラップ",
+    "koreana":"아다만트 가시 트랩","polish":"Pułapka — kolce z adamantu",
+    "brazilian":"Armadilha de Espinhos de Adamant","russian":"Ловушка с адамантовыми кольями",
+    "turkish":"Dikenli Adamant Tuzak","schinese":"精金尖刺陷阱","tchinese":"精金尖刺陷阱"}),
+
+ "adamantSpikesTrapDesc": ("blocks","Trap", {
+    "english":"Hurts far more than iron spikes and never wears out. Immune to zombies, weapons and explosions; only tools can remove it.",
+    "german":"Richtet deutlich mehr Schaden an als Eisenstacheln und nutzt sich nie ab. Immun gegen Zombies, Waffen und Explosionen; nur mit Werkzeugen entfernbar.",
+    "spanish":"Hace mucho más daño que los pinchos de hierro y nunca se desgasta. Inmune a zombis, armas y explosiones; solo se puede quitar con herramientas.",
+    "french":"Inflige bien plus de dégâts que les pieux en fer et ne s'use jamais. Insensible aux zombies, aux armes et aux explosions ; seuls les outils peuvent l'enlever.",
+    "italian":"Infligge molti più danni degli spuntoni di ferro e non si consuma mai. Immune a zombie, armi ed esplosioni; rimovibile solo con gli attrezzi.",
+    "japanese":"鉄スパイクよりはるかに高いダメージを与え、決して摩耗しない。ゾンビ・武器・爆発を受け付けず、ツールでのみ撤去できる。",
+    "koreana":"철제 가시보다 훨씬 큰 피해를 주며 절대 마모되지 않는다. 좀비, 무기, 폭발에 면역이며 도구로만 제거할 수 있다.",
+    "polish":"Zadaje znacznie większe obrażenia niż żelazne kolce i nigdy się nie zużywa. Odporna na zombie, broń i eksplozje; usuwalna tylko narzędziami.",
+    "brazilian":"Causa muito mais dano que espinhos de ferro e nunca se desgasta. Imune a zumbis, armas e explosões; só pode ser removida com ferramentas.",
+    "russian":"Наносит намного больше урона, чем железные колья, и никогда не изнашивается. Неуязвима для зомби, оружия и взрывов; убрать можно только инструментом.",
+    "turkish":"Demir dikenlerden çok daha fazla hasar verir ve asla aşınmaz. Zombilere, silahlara ve patlamalara karşı bağışıklıdır; yalnızca aletlerle kaldırılabilir.",
+    "schinese":"伤害远高于铁钉陷阱，且永不损耗。免疫僵尸、武器和爆炸，只能用工具拆除。",
+    "tchinese":"傷害遠高於鐵釘陷阱，且永不損耗。免疫殭屍、武器和爆炸，只能用工具拆除。"}),
+
  "txName_adamant": ("painting","Block", {
     "english":"Adamant","german":"Adamant","spanish":"Adamant","french":"Adamant",
     "italian":"Adamant","japanese":"アダマント","koreana":"아다만트","polish":"Adamant",
@@ -97,6 +120,7 @@ def write(path, keys):
     print("wrote", path)
 
 survival_keys = list(T.keys())
-creative_keys = ["adamantShapes:VariantHelper","adamantBlockGroupDesc","txName_adamant"]
+creative_keys = ["adamantShapes:VariantHelper","adamantBlockGroupDesc","txName_adamant",
+                 "adamantSpikesTrap","adamantSpikesTrapDesc"]
 write("Localization_survival.csv", survival_keys)
 write("Localization_creative.csv", creative_keys)
