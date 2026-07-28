@@ -34,3 +34,8 @@ Fewer, better images beat more images. If you only shoot two, make them the hero
   **use the Nexus preview before saving** - the exact tag support is not publicly documented.
 - Keep this file in sync when recipes or stats change. It duplicates numbers from
   `AdamantBlock/Config/` on purpose, since the mod page cannot read the XML.
+- The **Changelog** section is hand-maintained: add a `[size=3][b]X.Y.Z[/b][/size]` block per
+  release, newest on top, and keep it to what a player notices - the reason for a change, not
+  its implementation. It is deliberately not the same text as `CHANGELOG.md` (which is written
+  for the repo) nor as the per-file mini changelog CI generates for the Files tab. Old versions
+  can be trimmed once they are several releases back; the link to the full history covers them.
