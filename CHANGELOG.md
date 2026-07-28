@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.1 - 2026-07-28
+
+### Fixed
+
+- **Paints from other mods no longer show up wearing the adamant texture.** 1.2.0 added its
+  atlas slice while the atlas was being built, which is *before* paint frameworks such as
+  OcbCustomTextures register their packs (they do that while `painting.xml` loads). Growing
+  the array first shifted the slices their entries pointed at, so entries in the paint tool
+  rendered the wrong texture - adamant among them. The injection now runs after `painting.xml`
+  and after every paint framework, where it cannot move anyone else's offsets. Only affects
+  installs that also run a paint framework; nothing is stored in the save either way.
+
+### Note
+
+- Adamant is **not** offered in the paint tool, by design since 1.2.0 - the mod-page text
+  claiming otherwise was stale. See the 1.2.0 entry for why that id space is avoided.
+
 ## 1.2.0 - 2026-07-28
 
 ### Changed

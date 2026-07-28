@@ -61,6 +61,18 @@ namespace AdamantBlock
         internal static int AtlasTextureId = -1;
         private static int boundTextureId = -1;
 
+        // Whoever grows the atlas last is the only one who cannot invalidate someone
+        // else's offsets, so the first injection is deferred to Block.LateInitAll - after
+        // painting.xml, and therefore after paint frameworks like OcbCustomTextures have
+        // registered theirs. Growing the array before them shifts the slices their paint
+        // entries point at, which shows up as vanilla paints wearing our texture.
+        // Later rebuilds (a texture-quality change) come back through the atlas postfix,
+        // where those frameworks have already re-applied inside loadSingleArray - so there
+        // the postfix itself is the late one.
+        private static bool injected;
+        private static TextureAtlas lastAtlas;
+        private static MeshDescriptionCollection lastCollection;
+
         public static void Configure(Mod mod)
         {
             if (mod != null && !string.IsNullOrEmpty(mod.Path))
@@ -76,14 +88,42 @@ namespace AdamantBlock
 
         // Postfix body. Runs on every atlas (re)build, including a texture-quality
         // change mid-game, and must therefore be idempotent.
-        public static void Extend(TextureAtlas atlas, MeshDescriptionCollection collection)
+        // Called on every atlas build. The first one only takes note; a rebuild re-applies
+        // right away, because the arrays it just loaded are vanilla again and our slice
+        // would otherwise be gone until the next restart.
+        public static void Remember(TextureAtlas atlas, MeshDescriptionCollection collection)
         {
-            if (atlas == null || collection == null || bundleUri == null) return;
+            lastAtlas = atlas;
+            lastCollection = collection;
+            if (injected) Extend();
+        }
 
-            MeshDescription[] all = collection.Meshes;
+        // Runs the deferred first injection once every config is parsed.
+        public static void ExtendWhenReady()
+        {
+            if (!injected) Extend();
+            BindBlocks();
+        }
+
+        // Everything is resolved live, never from what the atlas postfix saw: rendering
+        // goes through MeshDescription.meshes[MeshIndex].textureAtlas.uvMapping
+        // (BlockShapeNew.renderFace), and that atlas is not necessarily the instance the
+        // load ran on. Appending to the wrong one leaves the block with a texture id past
+        // the end of the live array, which renderFace silently swaps for a default - a
+        // wood-looking block with no error anywhere.
+        public static void Extend()
+        {
+            if (bundleUri == null) return;
+
+            MeshDescription[] all = MeshDescription.meshes;
+            if (all == null || all.Length <= MeshDescription.cIndexOpaque)
+                all = lastCollection != null ? lastCollection.Meshes : null;
             if (all == null || all.Length <= MeshDescription.cIndexOpaque) return;
             MeshDescription opaque = all[MeshDescription.cIndexOpaque];
             if (opaque == null) return;
+
+            TextureAtlas atlas = opaque.textureAtlas ?? lastAtlas;
+            if (atlas == null) return;
 
             UVRectTiling[] map = atlas.uvMapping;
             if (map == null || map.Length <= DonorTextureId) return;
@@ -98,10 +138,20 @@ namespace AdamantBlock
                 Texture[] retired = ready ? null : GrowArrays(opaque, map[DonorTextureId].index);
                 if (!ready && retired == null) return;
 
+                // Order matters: ReloadTextureArrays binds the materials from the ATLAS
+                // fields (Material.mainTexture <- textureAtlas.diffuseTexture, _BumpMap <-
+                // normalTexture, _MetallicGlossMap <- specularTexture), not from the
+                // MeshDescription. Rebinding before these three assignments leaves every
+                // chunk material on the old array, where our slice index is out of range -
+                // and an out-of-range slice clamps to the last one instead of failing.
                 atlas.diffuseTexture = opaque.TexDiffuse;
                 atlas.normalTexture = opaque.TexNormal;
                 atlas.specularTexture = opaque.TexSpecular;
+                opaque.ReloadTextureArrays(false);
+                VerifyBinding(opaque);
+
                 AtlasTextureId = AppendMapping(atlas, ownDiffuse.depth - 1);
+                injected = true;
                 BindBlocks();
 
                 // Only once every reference has been moved over: the old arrays are
@@ -160,6 +210,11 @@ namespace AdamantBlock
                 return null;
             }
 
+            Log.Out("[AdamantBlock] atlas: live=" + (ReferenceEquals(opaque.textureAtlas, lastAtlas) ? "same as load" : "DIFFERENT from load")
+                    + ", uvMapping " + (opaque.textureAtlas != null && opaque.textureAtlas.uvMapping != null
+                                        ? opaque.textureAtlas.uvMapping.Length.ToString() : "?")
+                    + " entries vs " + (lastAtlas != null && lastAtlas.uvMapping != null
+                                        ? lastAtlas.uvMapping.Length.ToString() : "?") + " at load time");
             Log.Out("[AdamantBlock] atlas channels: diffuse " + Describe(diffuse) + " <- " + Describe(srcDiffuse)
                     + " | normal " + Describe(normal) + " <- " + Describe(srcNormal)
                     + " | specular " + Describe(specular));
@@ -183,10 +238,6 @@ namespace AdamantBlock
             opaque.TexDiffuse = ownDiffuse = grownDiffuse;
             opaque.TexNormal = ownNormal = grownNormal;
             opaque.TexSpecular = ownSpecular = grownSpecular;
-
-            // Let the engine rebind every material it knows about (_MainTex/_BumpMap/
-            // _MetallicGlossMap/...) rather than guessing the shader property names.
-            opaque.ReloadTextureArrays(false);
 
             Log.Out("[AdamantBlock] opaque atlas " + atlasSize + "px: slice "
                     + (grownDiffuse.depth - 1) + " added (" + oldDepth + " -> "
@@ -230,6 +281,25 @@ namespace AdamantBlock
             }
             if (flat != null) UnityEngine.Object.Destroy(flat);
             return null;
+        }
+
+        // The block silently renders something else when the chunk material still samples
+        // the old array, so this is worth stating in the log rather than assuming.
+        private static void VerifyBinding(MeshDescription opaque)
+        {
+            Material chunk = opaque.materials != null && opaque.materials.Length > 0 ? opaque.materials[0] : null;
+            if (chunk == null)
+            {
+                Log.Warning("[AdamantBlock] opaque mesh has no material to rebind"
+                            + " (bTextureArray=" + opaque.bTextureArray + ")");
+                return;
+            }
+
+            bool bound = ReferenceEquals(chunk.mainTexture, ownDiffuse);
+            if (bound) Log.Out("[AdamantBlock] chunk material bound to the extended atlas");
+            else Log.Warning("[AdamantBlock] chunk material still samples the old atlas"
+                             + " (bTextureArray=" + opaque.bTextureArray
+                             + ") - the block will show a neighbouring texture");
         }
 
         private static string Describe(Texture tex)
@@ -364,9 +434,12 @@ namespace AdamantBlock
         }
     }
 
-    // The one place where the finished atlas and a fresh uvMapping exist together.
-    // TextureAtlasTerrain routes its own load through this method as well, hence the
-    // index check.
+    // The one place where the finished atlas and a fresh uvMapping exist together. On the
+    // very first build this only records them - the injection itself waits for
+    // Block.LateInitAll so that paint frameworks get to compute their offsets against an
+    // untouched atlas. A later rebuild (texture-quality change) does inject from here,
+    // because by then those frameworks have already re-applied inside loadSingleArray.
+    // TextureAtlasTerrain routes its own load through this method too, hence the index check.
     [HarmonyPatch(typeof(TextureAtlasBlocks), nameof(TextureAtlasBlocks.LoadTextureAtlas))]
     internal static class Patch_TextureAtlasBlocks_LoadTextureAtlas
     {
@@ -374,18 +447,18 @@ namespace AdamantBlock
                                     MeshDescriptionCollection _tac, bool _bLoadTextures)
         {
             if (!_bLoadTextures || _idx != MeshDescription.cIndexOpaque) return;
-            AdamantAtlas.Extend(__instance, _tac);
+            AdamantAtlas.Remember(__instance, _tac);
         }
     }
 
-    // Blocks are parsed AFTER the atlas is built (log order: painting ~166 s, blocks
-    // ~227 s), so the id is normally handed out here rather than in the atlas postfix.
+    // Config load order is painting.xml -> blocks.xml, so this is the first moment at which
+    // every paint mod has had its turn AND the blocks that need the id exist.
     [HarmonyPatch(typeof(Block), nameof(Block.LateInitAll))]
     internal static class Patch_Block_LateInitAll
     {
         private static void Postfix()
         {
-            AdamantAtlas.BindBlocks();
+            AdamantAtlas.ExtendWhenReady();
         }
     }
 

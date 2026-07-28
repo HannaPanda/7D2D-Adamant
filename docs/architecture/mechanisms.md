@@ -43,26 +43,44 @@ MeshDescription.LoadTextureArraysForQuality
       TextureAtlas.uvMapping - the array a block's Texture property indexes into)
 ```
 
-A **postfix on `TextureAtlasBlocks.LoadTextureAtlas`** is therefore the one place where the
-finished texture arrays and a fresh `uvMapping` exist together. It is a plain method, not a
-coroutine, so no transpiler is needed. There the DLL:
+A **postfix on `TextureAtlasBlocks.LoadTextureAtlas`** is where the finished texture arrays and
+a fresh `uvMapping` first exist together - a plain method, not a coroutine, so no transpiler is
+needed. The first injection nevertheless waits for a **postfix on `Block.LateInitAll`**, because
+config load order is `painting.xml` → `blocks.xml`: paint frameworks such as OcbCustomTextures
+register their packs while `painting.xml` loads, and they compute where their own slices start
+from the atlas as they find it. Growing the array before them shifts what their entries point
+at - vanilla paints then wear our texture. Whoever extends the atlas **last** is the only one
+who cannot corrupt anyone else's offsets, and `Block.LateInitAll` is also the first moment the
+blocks that need the id exist. A later rebuild (texture-quality change) is re-applied from the
+atlas postfix, where those frameworks have already run inside `loadSingleArray`.
+
+Wherever it runs, the DLL:
 
 1. allocates `depth + 1` copies of the three `Texture2DArray`s and blits every existing slice
    across with `Graphics.CopyTexture`;
 2. pre-fills the new slice from the donor slice (texture id 356, steel), which guarantees a
    correctly formatted specular/MOER slice without shipping a third texture, then overwrites
    diffuse and normal with `Resources/adamant.unity3d?adamant_diffuse` / `?adamant_normal`;
-3. calls `MeshDescription.ReloadTextureArrays(false)` so the engine itself rebinds every
-   material (`_MainTex`, `_BumpMap`, `_MetallicGlossMap`, …), then releases the original
-   arrays through the engine's own `MeshDescription.Unload`;
+3. points `TextureAtlas.diffuseTexture` / `normalTexture` / `specularTexture` at the new
+   arrays **and only then** calls `MeshDescription.ReloadTextureArrays(false)`, which rebinds
+   every chunk material (`mainTexture`, `_BumpMap`, `_MetallicGlossMap`, …) - it reads those
+   atlas fields, not the `MeshDescription`, so rebinding first leaves the materials sampling
+   the old array, where the new slice index is out of range. An out-of-range slice **clamps
+   to the last one** instead of erroring, which looks like the block wearing a random other
+   texture. The result is verified and logged rather than assumed;
 4. appends one `UVRectTiling` record - cloned from the donor, retargeted at the new slice as
    a full 1×1 tile - and takes its array index as the new texture id;
 5. rewrites that id onto every block whose material is `MAdamant_shapes`, replacing the
-   fallback 356 from `blocks.xml`.
+   fallback 356 from `blocks.xml`;
+6. releases the arrays it replaced through `MeshDescription.Unload` - **last**, once nothing
+   references them any more.
 
-Blocks are parsed *after* the atlas is built, so step 5 normally runs from a second postfix on
-`Block.LateInitAll`; the atlas postfix repeats it for the case where blocks already exist (a
-texture-quality change rebuilds the atlas mid-game, and the whole path is idempotent).
+Mesh and atlas are resolved live (`MeshDescription.meshes[cIndexOpaque].textureAtlas`) at the
+moment of injection, never from what the atlas postfix saw: rendering reads
+`MeshDescription.meshes[MeshIndex].textureAtlas.uvMapping` (`BlockShapeNew.renderFace`), and
+appending to any other instance leaves the block with an id past the end of the live array.
+
+The whole path is idempotent, so a texture-quality change mid-game simply re-runs it.
 
 **No paint entry is registered on purpose.** A `<paint>`/`BlockTextureData` record would put
 the texture into the paint tool, but paint ids are persisted per painted face in the save and

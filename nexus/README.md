@@ -17,7 +17,7 @@ description alone - it has to exist in the mod page's **Images** tab first:
 | Placeholder | What to shoot |
 |---|---|
 | `%%IMG_HERO%%` | The money shot. A finished adamant structure, good light, ideally at dusk so the purple reads. This is the thumbnail people judge the mod by. |
-| `%%IMG_SHAPES%%` | Several different shapes side by side (cube, ramp, wedge, plate, pillar) to prove `shapes="All"` works. Bonus: the paint tool open with "Adamant" selected. |
+| `%%IMG_SHAPES%%` | Several different shapes side by side (cube, ramp, wedge, plate, pillar) to prove `shapes="All"` works. Not the paint tool - adamant is deliberately not a paint (see CHANGELOG 1.2.0). |
 | `%%IMG_TRAPS%%` | A spike row in front of a base during a blood moon, zombies in it. Action sells traps far better than an empty row. |
 | `%%IMG_CRAFTING%%` | The workbench recipe open, or the three items laid out in inventory (ore → ingot → block). Proves the progression at a glance. |
 
