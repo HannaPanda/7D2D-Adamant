@@ -67,22 +67,22 @@ The Forged Steel already requires a crucible forge, so the ingot stays a mid-to-
 [size=5][b][color=#b78ae8]Changelog[/color][/b][/size]
 [size=3][b]1.2.1[/b][/size]
 [list]
-[*][b]Fixed:[/b] paints from other mods showed the adamant texture. 1.2.0 extended the block atlas too early — before paint frameworks register their packs — which shifted the textures their entries pointed at. Nothing was ever written to your save; a restart is all it takes.
+[*][b]Fixed:[/b] some paints from other mods showed the adamant texture instead of their own. Nothing was saved wrong — update and restart, and they look right again.
 [/list]
 [size=3][b]1.2.0[/b][/size]
 [list]
-[*][b]OcbCustomTextures is no longer required.[/b] The mod adds its texture to the block atlas itself. One less core mod to install and keep updated.
-[*][b]No paint id is registered any more.[/b] Paint ids are stored per painted face in your save and shift when your set of paint mods changes — that is what produces "Missing paint ID XML entry" and, at worst, a crash on load. Adamant stays out of that entirely. The trade-off: it is no longer offered in the paint tool.
-[*]If the texture ever fails to install (dedicated server, damaged download), the block falls back to vanilla steel and stays fully playable.
+[*][b]No extra mod needed any more.[/b] Adamant used to need the OcbCustomTextures core mod just to show its texture. It brings its own now — one less thing to install and keep updated.
+[*][b]Adamant is no longer in the paint tool[/b], on purpose. The old way left an entry in your save that could point at the wrong texture whenever you added or removed other paint mods, and in bad cases that broke loading the world. Blocks you have already built are unaffected.
+[*]If the texture ever fails to load, the block now looks like plain steel instead of looking broken, and everything else still works.
 [/list]
 [size=3][b]1.1.0[/b][/size]
 [list]
-[*][b]New:[/b] Adamant Spikes Trap — 60 damage per hit, never wears out, demolisher-proof.
-[*][b]Fixed:[/b] the Adamant Ingot could be crafted for free, one at a time. It was a forge recipe, and the forge resolves ingredients through its molten-material grid, so nothing was ever deducted. Moved to the workbench.
+[*][b]New:[/b] Adamant Spikes Trap. Hits almost twice as hard as iron spikes, never wears out, and demolishers can't stomp it.
+[*][b]Fixed:[/b] Adamant Ingots could be made for free, one at a time. They are crafted at the workbench now and cost what they should.
 [/list]
 [size=3][b]1.0.0[/b][/size]
 [list]
-[*]Initial release for 7 Days to Die V3.0.
+[*]First release for 7 Days to Die V3.0.
 [/list]
 [i]Full history: [url=https://github.com/HannaPanda/7D2D-Adamant/blob/main/CHANGELOG.md]CHANGELOG.md[/url] on GitHub.[/i]
 
