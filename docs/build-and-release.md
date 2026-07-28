@@ -43,7 +43,28 @@ remove them or the release zips would be incomplete.
 
 ## Nexus upload
 
-Manual - there is no upload API or CLI. Upload the survival zip as the main file and the
-creative zip as an optional file. List OcbCustomTextures (Nexus mod 2788) as a requirement,
-disclose that the mod contains a DLL, and note that EasyAntiCheat must be off and that
-multiplayer needs it on client and server.
+The mod page and the two file entries are created **by hand once** (the v3 Upload API has no
+endpoint that creates a mod page). After that CI pushes every tag: Survival as the main file,
+Creative as optional. See AGENTS.md for the secret/variable names.
+
+### File descriptions
+
+The description on a Nexus *file* is what a user reads next to the download button, so it
+answers "which of these two do I want?" first and "what changed?" second. Never ship
+boilerplate like "Automated upload from tag vX.Y.Z". The workflow builds each description as:
+
+1. **What this edition is**, in the user's terms - Survival: find ore, smelt an ingot, craft
+   at the workbench; Creative: 1 wood from the backpack, for builders and testing. Both say
+   "install this OR the other one, not both".
+2. **Install constraints** - OcbCustomTextures required, EAC off (Harmony DLL), multiplayer
+   needs client + server.
+3. **Mini changelog** - built by the `Build mini changelog` step from the `## <version>`
+   section of `CHANGELOG.md`: up to 6 top-level bullets, each flattened to one line
+   (~180 chars, whole sentences where they fit), followed by a link to the full changelog.
+   No matching section → the blurb plus the link, so a forgotten changelog entry never
+   breaks the release.
+
+The blurbs live in `release.yml` next to each upload step; edit them there when an edition's
+premise changes. Because only the bullet's opening sentences survive, **write CHANGELOG
+bullets so the first sentence states the change** - the rest of the bullet can hold the
+reasoning for readers of the repo.
