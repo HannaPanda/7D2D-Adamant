@@ -7,7 +7,8 @@ A near-indestructible building block with a custom purple crystalline texture.
 - Can **only be mined with tools** (pickaxe, axe, auger, shovel, nailgun, salvage tools).
 - **10× steel** stability (`stability_glue` 3000), full explosion immunity.
 - Custom **`adamant`** opaque texture that works on the **full shape set**
-  (`shapes="All"`) and is selectable in the **paint tool**.
+  (`shapes="All"`), injected into the block atlas by the mod's own DLL - **no core
+  mod required**.
 - Custom item icons for the ore and ingot; localized into **13 languages**
   (EN, DE, ES, FR, IT, JA, KO, PL, PT-BR, RU, TR, ZH-Hans, ZH-Hant).
 
@@ -20,19 +21,18 @@ Two editions are provided (install **one**):
 
 ## Requirements
 
-- **[OcbCustomTextures](https://www.nexusmods.com/7daystodie/mods/2788)** - **required.**
-  Injects the custom `adamant` texture into the block atlas. Without it the block
-  still works but renders with a missing/placeholder texture.
+- **No other mods.** The texture is added to the block atlas by `AdamantBlock.dll`
+  itself; if that ever fails (dedicated server, damaged bundle) the block falls back
+  to the vanilla steel texture and stays fully playable.
 - **EasyAntiCheat must be OFF** - this mod ships a Harmony DLL
   (`SkipWithAntiCheat` is set). Works in single-player and on private servers.
 - **Multiplayer:** install on **both client and server**.
 
 ## Installation
 
-1. Install **OcbCustomTextures** (see above).
-2. Copy **one** edition's folder (`AdamantBlock` *or* `AdamantBlock-Creative`)
+1. Copy **one** edition's folder (`AdamantBlock` *or* `AdamantBlock-Creative`)
    into your `7 Days To Die/Mods/` folder.
-3. Launch with EAC disabled.
+2. Launch with EAC disabled.
 
 ## Survival progression
 
@@ -51,9 +51,12 @@ in `recipes.xml`, to taste.
   `Block.DamageBlock` / `OnBlockDamaged`. Non-player damage is always blocked;
   for a player it blocks the hit only when the held item carries the vanilla
   `weapon` tag (tools lack it). See `src/dll/AdamantBlockMod.cs`.
-- **Custom texture** - an `<opaque>` paint entry (`Config/painting.xml`) consumed
-  by OcbCustomTextures, backed by `Resources/adamant.unity3d`
-  (512² `adamant_diffuse` DXT1 + `adamant_normal` DXTnm).
+- **Custom texture** - a Harmony postfix on `TextureAtlasBlocks.LoadTextureAtlas`
+  grows the opaque block texture arrays by one slice, fills it from
+  `Resources/adamant.unity3d` (512² `adamant_diffuse` DXT1 + `adamant_normal`
+  DXTnm) and hands the resulting atlas index to every adamant block. No paint
+  entry is created, so no paint id ends up in your save.
+  See `src/dll/AdamantAtlas.cs` and `docs/architecture/mechanisms.md`.
 
 ## Building from source
 
@@ -74,7 +77,6 @@ into `Assets/Editor`, then **7DTD ▸ Build Adamant Bundle**. Place the resultin
 
 ## Credits
 
-- **OcbCustomTextures** by OCB (Marc Streckfuß) - custom block texture framework.
 - Harmony by pardeike.
 
 ## License

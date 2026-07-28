@@ -4,7 +4,6 @@
 	     Adamant block, full shape set (shapes="All" auto-generates every
 	     shape: cube, ramp, plate, wedge, ... just like steelShapes).
 	     Modeled on the vanilla "steelShapes" master block.
-	     Texture 356 = steel look (change here to re-skin).
 	     ================================================================ -->
 	<append xpath="/blocks">
 		<block name="adamantShapes" shapes="All">
@@ -12,11 +11,13 @@
 			<property name="DisplayType" value="blockHardened"/>
 			<property name="Material" value="MAdamant_shapes"/>
 			<property name="Shape" value="New"/>
-			<!-- Custom opaque atlas texture "adamant", injected via OcbCustomTextures
-			     (see painting.xml). Works with the full shapes="All" set and paint tool.
-			     Needs Resources/adamant.unity3d present. If OcbCustomTextures is missing
-			     or the bundle is absent, revert this to a numeric index like "356". -->
-			<property name="Texture" value="adamant"/>
+			<!-- 356 = vanilla steel, and it is what you actually see only if the
+			     custom texture cannot be installed (dedicated server, missing or
+			     malformed Resources/adamant.unity3d). AdamantBlock.dll appends the
+			     purple adamant texture to the opaque atlas at load and rewrites this
+			     id at runtime - see src/dll/AdamantAtlas.cs. Keep it numeric: a name
+			     here would only resolve with a core mod installed. -->
+			<property name="Texture" value="356"/>
 			<property name="EconomicValue" value="50"/>
 			<property class="RepairItems">
 				<property name="resourceWood" value="1"/>

@@ -56,10 +56,8 @@ T = {
     "schinese":"伤害远高于铁钉陷阱，且永不损耗。免疫僵尸、武器和爆炸，只能用工具拆除。",
     "tchinese":"傷害遠高於鐵釘陷阱，且永不損耗。免疫殭屍、武器和爆炸，只能用工具拆除。"}),
 
- "txName_adamant": ("painting","Block", {
-    "english":"Adamant","german":"Adamant","spanish":"Adamant","french":"Adamant",
-    "italian":"Adamant","japanese":"アダマント","koreana":"아다만트","polish":"Adamant",
-    "brazilian":"Adamant","russian":"Адамант","turkish":"Adamant","schinese":"精金","tchinese":"精金"}),
+# No txName_* entry: the block texture is injected into the atlas by the DLL and is
+# deliberately not registered as a paint, so nothing shows it a name (see AdamantAtlas.cs).
 
  "adamantOre": ("items","Item", {
     "english":"Adamant Ore","german":"Adamant-Erz","spanish":"Mineral de Adamant",
@@ -120,7 +118,7 @@ def write(path, keys):
     print("wrote", path)
 
 survival_keys = list(T.keys())
-creative_keys = ["adamantShapes:VariantHelper","adamantBlockGroupDesc","txName_adamant",
+creative_keys = ["adamantShapes:VariantHelper","adamantBlockGroupDesc",
                  "adamantSpikesTrap","adamantSpikesTrapDesc"]
 write("Localization_survival.csv", survival_keys)
 write("Localization_creative.csv", creative_keys)

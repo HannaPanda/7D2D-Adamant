@@ -36,9 +36,13 @@ item's `Extends` base. High-res icon sources live in `src/texture/*_source.png`.
 
 ## Custom block texture
 
-A `shapes="All"` block cannot carry a loose PNG - `Texture` is an atlas index, and a custom
-one needs OcbCustomTextures (see architecture/mechanisms.md). Bundle asset references resolve
-by bare name (`?adamant_diffuse`), matching other Smorgasbord mods.
+A `shapes="All"` block cannot carry a loose PNG - `Texture` is an index into
+`TextureAtlas.uvMapping`, so a custom texture means adding a slice to the opaque
+`Texture2DArray` at runtime (we do that ourselves, see architecture/mechanisms.md). Keep the
+XML value **numeric**: a name only resolves if some core mod rewrites it before parsing.
+Bundle asset references resolve by bare name (`?adamant_diffuse`), matching other Smorgasbord
+mods. From C# the loader wants the `#<bundle path>?<asset>` form
+(`DataLoader.ParseDataPathIdentifier`), with the mod folder taken from `Mod.Path`.
 
 ## Tooling and path gotchas
 

@@ -8,9 +8,12 @@ namespace AdamantBlock
     {
         public void InitMod(Mod _modInstance)
         {
+            // The atlas injector needs the mod folder to find its texture bundle.
+            AdamantAtlas.Configure(_modInstance);
+
             var harmony = new Harmony("com.hanna.adamantblock");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
-            UnityEngine.Debug.Log("[AdamantBlock] Harmony patches applied (tool-vs-weapon guard).");
+            UnityEngine.Debug.Log("[AdamantBlock] Harmony patches applied (tool-vs-weapon guard, atlas texture).");
         }
     }
 

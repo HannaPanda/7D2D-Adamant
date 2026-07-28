@@ -9,8 +9,9 @@ mechanisms and two shippable editions.
 
 - **Tool-vs-weapon damage gate** (Harmony DLL): only tools mine it; weapons, zombies,
   animals and explosions deal zero damage.
-- **Custom purple crystalline texture** on the full `shapes="All"` set, via the
-  **OcbCustomTextures** core mod (required dependency).
+- **Custom purple crystalline texture** on the full `shapes="All"` set, injected into the
+  opaque block atlas by our own DLL - **no dependencies** (this replaced the
+  OcbCustomTextures requirement in 1.2.0).
 - **Survival crafting chain**: rare Adamant Ore → forge-smelted Adamant Ingot → block.
 - **Adamant Spikes Trap**: an indestructible, non-degrading spike trap. Pure XML - it
   reuses the material, so the DLL gate covers it for free.
@@ -44,7 +45,7 @@ extra localization rows).
 Detailed documentation lives in `docs/`:
 
 - [`docs/architecture/mechanisms.md`](docs/architecture/mechanisms.md) - how the three
-  custom mechanisms (tool-vs-weapon DLL, OcbCustomTextures texture, survival crafting chain)
+  custom mechanisms (tool-vs-weapon DLL, atlas texture injection, survival crafting chain)
   are wired, with a file-to-mechanism map.
 - [`docs/conventions/modding.md`](docs/conventions/modding.md) - verified vanilla item names,
   the Localization.csv RFC-CSV quoting rule, the item-icon convention, and the path/tooling
@@ -63,8 +64,9 @@ matching `docs/` file in the same commit.
   `C:\Modlists\Smorgasbord\mods\[NoDelete]Adamant Block\AdamantBlock\`
   - this is the running copy; the repo's `AdamantBlock/` mirrors it. **Keep them in sync.**
 - **Unity** (for the texture bundle only): `2022.3.62f2`, Built-in pipeline, Linear color space.
-- **Dependency**: **OcbCustomTextures** (Nexus mod 2788) - installed in the modlist,
-  required for the texture to render.
+- **Dependencies: none.** OcbCustomTextures is still installed in the modlist for *other*
+  mods, but Adamant no longer uses it and must keep working with it absent - the two do not
+  interact (we never touch the paint id space it manages).
 
 ## How the three mechanisms are wired
 
@@ -72,10 +74,12 @@ matching `docs/` file in the same commit.
    `Block.DamageBlock` / `Block.OnBlockDamaged`. Blocks the hit when the source is not a
    player, or when the player's held item (`inventory.holdingItem`) carries the vanilla
    `weapon` tag (tools lack it). Material `explosionresistance="1"` handles explosions.
-2. **Texture** - `Config/painting.xml` defines `<opaque id="adamant">` (consumed by
-   OcbCustomTextures) pointing at `Resources/adamant.unity3d?adamant_diffuse` /
-   `?adamant_normal` (512², DXT1 + DXTnm) plus an on-the-fly Specular string. The block
-   sets `Texture="adamant"` and keeps `shapes="All"`.
+2. **Texture** - `src/dll/AdamantAtlas.cs`: postfix on `TextureAtlasBlocks.LoadTextureAtlas`
+   grows the three opaque `Texture2DArray`s by one slice, fills it from
+   `Resources/adamant.unity3d?adamant_diffuse` / `?adamant_normal` (512², DXT1 + DXTnm),
+   appends a `uvMapping` entry and writes its index onto every `MAdamant_shapes` block.
+   `blocks.xml` ships `Texture="356"` (steel) as the fallback. **No paint entry** - that
+   id space is what drifts and breaks saves. Details in `docs/architecture/mechanisms.md`.
 3. **Survival chain** - `Config/items.xml` (`adamantOre`, `adamantIngot`, tinted/iconed),
    `Config/recipes.xml` (forge ingot + workbench block), `Config/blocks.xml` (rare
    `adamantOre` Harvest drop on `terrOreIron/Lead/Coal`).
@@ -134,8 +138,8 @@ setting/clearing the variable is the on/off switch. Only the Survival step sets
   `POST /mod-files/{id}/versions` (what the Action wraps, keyed by a `file_id` from the
   Files tab → "API Info") can push new versions from CI. `POST /mod-files` additionally
   creates a new *file entry* on an existing mod page.
-  Main file = Survival zip, optional = Creative zip. List OcbCustomTextures as a
-  requirement; disclose "contains DLL" and "EAC must be off".
+  Main file = Survival zip, optional = Creative zip. No mod requirements to list any more;
+  disclose "contains DLL" and "EAC must be off".
 
 ## Gotchas (all verified on this machine)
 
@@ -151,7 +155,7 @@ setting/clearing the variable is the on/off switch. Only the Survival step sets
 
 ## Deeper 7DTD knowledge
 
-Verified engine/API notes (block-damage internals, OcbCustomTextures API, tag mechanics,
+Verified engine/API notes (block-damage internals, block atlas internals, tag mechanics,
 icon/CSV conventions) live in the user's `7d2d-modding` Claude skill `LEARNINGS.md`
 (outside this repo). Interrogate `Assembly-CSharp.dll` with that skill's `dump-*` scripts
 rather than guessing engine behavior.

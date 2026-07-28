@@ -30,6 +30,18 @@
       <HintPath>C:\Steam\steamapps\common\7 Days To Die\7DaysToDie_Data\Managed\UnityEngine.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Log lives in LogLibrary, not in Assembly-CSharp; without this the atlas
+         injector fails to compile with a misleading CS0103 on "Log". -->
+    <Reference Include="LogLibrary">
+      <HintPath>C:\Steam\steamapps\common\7 Days To Die\7DaysToDie_Data\Managed\LogLibrary.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Only needed so the compiler can see AssetReference while overloading
+         DataLoader.LoadAsset; no Addressables API is used directly. -->
+    <Reference Include="Unity.Addressables">
+      <HintPath>C:\Steam\steamapps\common\7 Days To Die\7DaysToDie_Data\Managed\Unity.Addressables.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

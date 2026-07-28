@@ -1,7 +1,12 @@
 # .NET build output (DLL source)
 [Bb]in/
 [Oo]bj/
+src/dll/out/
 *.user
+
+# Localization CSVs are generated into the mod folders by gen_localization.py;
+# the intermediates next to the script are not part of the repo.
+src/texture/Localization_*.csv
 
 # Backups / temp
 *.dll.bak

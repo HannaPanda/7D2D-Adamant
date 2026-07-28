@@ -60,9 +60,8 @@ jobs:
           files: dist/*.zip
           generate_release_notes: true
           body: |
-            7 Days to Die V3.0 - install **one** edition. Both require
-            [OcbCustomTextures](https://www.nexusmods.com/7daystodie/mods/2788)
-            and EasyAntiCheat **off** (Harmony DLL). Multiplayer: client + server.
+            7 Days to Die V3.0 - install **one** edition. No other mods needed;
+            EasyAntiCheat must be **off** (Harmony DLL). Multiplayer: client + server.
 
             - **Survival** - rare Adamant Ore → workbench Adamant Ingot → block + spike trap.
             - **Creative** - 1 wood → block.
@@ -186,8 +185,8 @@ jobs:
             and the spike trap at the workbench. Install this OR the Creative
             edition, not both.
 
-            Requires OcbCustomTextures. Contains a Harmony DLL, so EasyAntiCheat
-            must be off. Multiplayer: install on client and server.
+            No other mods required. Contains a Harmony DLL, so EasyAntiCheat must
+            be off. Multiplayer: install on client and server.
 
             ${{ steps.notes.outputs.changelog }}
 
@@ -208,7 +207,7 @@ jobs:
             backpack. For builders and testing. Install this OR the Survival
             edition, not both.
 
-            Requires OcbCustomTextures. Contains a Harmony DLL, so EasyAntiCheat
-            must be off. Multiplayer: install on client and server.
+            No other mods required. Contains a Harmony DLL, so EasyAntiCheat must
+            be off. Multiplayer: install on client and server.
 
             ${{ steps.notes.outputs.changelog }}

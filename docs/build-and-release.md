@@ -56,7 +56,7 @@ boilerplate like "Automated upload from tag vX.Y.Z". The workflow builds each de
 1. **What this edition is**, in the user's terms - Survival: find ore, smelt an ingot, craft
    at the workbench; Creative: 1 wood from the backpack, for builders and testing. Both say
    "install this OR the other one, not both".
-2. **Install constraints** - OcbCustomTextures required, EAC off (Harmony DLL), multiplayer
+2. **Install constraints** - no other mods required, EAC off (Harmony DLL), multiplayer
    needs client + server.
 3. **Mini changelog** - built by the `Build mini changelog` step from the `## <version>`
    section of `CHANGELOG.md`: up to 6 top-level bullets, each flattened to one line

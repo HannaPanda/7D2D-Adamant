@@ -3,7 +3,7 @@
 	<!-- ================================================================
 	     Adamant block, full shape set (shapes="All"). Identical to the
 	     survival edition MINUS the rare-ore Harvest drops (Creative has no
-	     adamantOre item). Custom "adamant" texture via OcbCustomTextures.
+	     adamantOre item).
 	     ================================================================ -->
 	<append xpath="/blocks">
 		<block name="adamantShapes" shapes="All">
@@ -11,7 +11,11 @@
 			<property name="DisplayType" value="blockHardened"/>
 			<property name="Material" value="MAdamant_shapes"/>
 			<property name="Shape" value="New"/>
-			<property name="Texture" value="adamant"/>
+			<!-- 356 = vanilla steel; only visible if the custom texture cannot be
+			     installed. AdamantBlock.dll appends the adamant texture to the opaque
+			     atlas at load and rewrites this id at runtime (src/dll/AdamantAtlas.cs).
+			     Keep it numeric - a name would need a core mod to resolve. -->
+			<property name="Texture" value="356"/>
 			<property name="EconomicValue" value="50"/>
 			<property class="RepairItems">
 				<property name="resourceWood" value="1"/>
