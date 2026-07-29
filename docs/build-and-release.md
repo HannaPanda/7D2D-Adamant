@@ -29,13 +29,50 @@ It must contain two texture assets named `adamant_diffuse` (DXT1, no alpha, 512Â
   `src/texture/*_source.png`. `gen_icons.py` produces the earlier procedural fallbacks.
 - Localization: `python src/texture/gen_localization.py`.
 
+## Version compatibility testing
+
+**Only game versions that were actually launched with the mod and had their log checked may
+be named as compatible.** The list is per mod release: what held for 1.2.1 says nothing about
+1.3.0. The two failure modes that a code review will not catch are a Harmony patch whose
+target signature moved, and an XML attribute the engine quietly stopped honouring - both need
+a real launch to surface.
+
+Test bench: `E:\7DTD-Testbench\` (see its `README.md`). One install per version under
+`E:\Games\7DTD-<version>`.
+
+```
+E:\7DTD-Testbench\Invoke-TestMatrix.ps1              # all configured versions
+E:\7DTD-Testbench\Invoke-SmokeTest.ps1 -Version 3.1.0   # a single one
+```
+
+The smoke test boots the install **headless** (`7DaysToDie.exe -dedicated -batchmode
+-nographics`, the fallback path in TFP's own `startdedicated.bat`) and greps the log for mod
+load, Harmony patches, XML problems and `ERR`/`EXC`. About 35 s per version, no GUI, no
+clicking. The matrix run writes `results\matrix_*.md` whose last section contains the ready-made
+`TESTED_VERSIONS` line.
+
+Two things the harness deliberately does not hide:
+
+- **Headless covers nothing graphical.** `TextureAtlasBlocks.LoadTextureAtlas` does not run
+  under `-nographics`, so the atlas texture injection is *untested* there. Every version that
+  goes on the list also needs one GUI run (`E:\Games\7DTD-<version>\Start-Test.bat`) with a
+  placed block looked at.
+- **Pure XML changes** may be carried across versions on a smoke test alone. **Any DLL or
+  Harmony change invalidates the entire list** and forces a re-test of every version named.
+
+Result feeds three places, which must stay in sync: `TESTED_VERSIONS` in `release.yml` (drives
+the GitHub release body and both Nexus file descriptions), the **Compatibility** section in
+`README.md`, and the Requirements list in `nexus/description.bbcode`.
+
 ## Release
 
 CI (`.github/workflows/release.yml`) packages and publishes on a version tag:
 
-1. Bump `<Version>` in both `ModInfo.xml`, update `CHANGELOG.md`.
-2. `git tag vX.Y.Z && git push origin vX.Y.Z`.
-3. The workflow validates every XML, checks the installable structure, zips both editions
+1. Re-run the compatibility matrix (above) and update `TESTED_VERSIONS`, README and the
+   Nexus bbcode if the list changed.
+2. Bump `<Version>` in both `ModInfo.xml`, update `CHANGELOG.md`.
+3. `git tag vX.Y.Z && git push origin vX.Y.Z`.
+4. The workflow validates every XML, checks the installable structure, zips both editions
    (mod folder at zip root, forward slashes) and publishes a GitHub Release with the zips.
 
 CI cannot build the DLL or the `.unity3d` bundle, so those two binaries are committed. Do not

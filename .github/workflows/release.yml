@@ -16,6 +16,14 @@ on:
 permissions:
   contents: write
 
+# Game versions this mod release was ACTUALLY launched and verified on. Only
+# tested builds get named - the Harmony patches (Block.DamageBlock and the atlas
+# postfix) are what breaks silently on a new build, so "probably works" is not a
+# claim we make on the mod page. Re-test and update this before every release;
+# the procedure is in docs/build-and-release.md.
+env:
+  TESTED_VERSIONS: "3.0.0, 3.0.1 and 3.1.0"
+
 jobs:
   package:
     runs-on: ubuntu-latest
@@ -60,8 +68,9 @@ jobs:
           files: dist/*.zip
           generate_release_notes: true
           body: |
-            7 Days to Die V3.0 - install **one** edition. No other mods needed;
-            EasyAntiCheat must be **off** (Harmony DLL). Multiplayer: client + server.
+            7 Days to Die V3.0 / V3.1 - install **one** edition. Tested on
+            **${{ env.TESTED_VERSIONS }}**; other 3.x builds are untested. No other mods
+            needed; EasyAntiCheat must be **off** (Harmony DLL). Multiplayer: client + server.
 
             - **Survival** - rare Adamant Ore → workbench Adamant Ingot → block + spike trap.
             - **Creative** - 1 wood → block.
@@ -185,8 +194,9 @@ jobs:
             and the spike trap at the workbench. Install this OR the Creative
             edition, not both.
 
-            No other mods required. Contains a Harmony DLL, so EasyAntiCheat must
-            be off. Multiplayer: install on client and server.
+            Tested on game version ${{ env.TESTED_VERSIONS }}; other 3.x builds are
+            untested. No other mods required. Contains a Harmony DLL, so EasyAntiCheat
+            must be off. Multiplayer: install on client and server.
 
             ${{ steps.notes.outputs.changelog }}
 
@@ -207,7 +217,8 @@ jobs:
             backpack. For builders and testing. Install this OR the Survival
             edition, not both.
 
-            No other mods required. Contains a Harmony DLL, so EasyAntiCheat must
-            be off. Multiplayer: install on client and server.
+            Tested on game version ${{ env.TESTED_VERSIONS }}; other 3.x builds are
+            untested. No other mods required. Contains a Harmony DLL, so EasyAntiCheat
+            must be off. Multiplayer: install on client and server.
 
             ${{ steps.notes.outputs.changelog }}

@@ -1,10 +1,10 @@
-# AGENTS.md - Adamant Block (7 Days to Die V3.0 mod)
+# AGENTS.md - Adamant Block (7 Days to Die V3.0 / V3.1 mod)
 
 Onboarding for AI agents working on this repo. Read this first.
 
 ## What this project is
 
-A near-indestructible building block for **7 Days to Die V3.0** with four custom
+A near-indestructible building block for **7 Days to Die V3.0 / V3.1** with four custom
 mechanisms and two shippable editions.
 
 - **Tool-vs-weapon damage gate** (Harmony DLL): only tools mine it; weapons, zombies,
@@ -25,6 +25,20 @@ names are also fixed by the engine (`XmlPatcher.LoadAndPatchConfig` looks for
 either - separate features with comment banners inside the existing files. The one safe
 companion-mod shape is a patch that *only* does `<set>`/`<remove>` on existing elements:
 a non-matching xpath merely warns instead of throwing.
+
+## Version compatibility - the rule
+
+**Never claim "works on 3.x".** Name only the game versions this mod release was actually
+launched on with its log checked. Currently: **3.0.0, 3.0.1 and 3.1.0** (each verified in two
+tiers - headless smoke test plus a GUI run for the graphical path).
+
+The list is per mod version and lives in four places that must stay in sync - the
+`TESTED_VERSIONS` env var in `.github/workflows/release.yml` (which feeds the GitHub release
+body and both Nexus file descriptions), the *Compatibility* section of `README.md`, and the
+Requirements list in `nexus/description.bbcode`. Re-establish it with the headless test bench
+before every release; procedure in [`docs/build-and-release.md`](docs/build-and-release.md).
+Pure XML changes may ride on a smoke test; **any DLL/Harmony change invalidates the whole
+list**.
 
 ## Repository layout
 
