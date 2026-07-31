@@ -73,10 +73,19 @@
 	                           animals and player weapons, mineable by tools -
 	                           and explosionresistance="1" stops demolisher
 	                           blasts. No DLL change needed.
-	     TintColor           : BlockShapeModelEntity.CloneModel applies it when
-	                           alpha > 0, recoloring the reused vanilla iron
-	                           spike prefab to the adamant purple (#7B4FB0)
-	                           without any Unity work.
+	     Look                : the vanilla iron-spike prefab is reused as-is and
+	                           AdamantBlock.dll swaps the texture its material
+	                           samples for the mod's own adamant_diffuse /
+	                           adamant_normal - see src/dll/AdamantTrapModel.cs.
+	                           NO TintColor here on purpose: that path ends in a
+	                           MaterialPropertyBlock write to "_Color", and this
+	                           prefab's shader (Game/Entity Tint Mask) does not
+	                           even declare that property - its tint knob is a
+	                           float called _Tint. The write was silently ignored.
+	                           Vanilla only uses TintColor on pale prefabs built
+	                           for it (gun safes, chests), never on a trap.
+	                           CustomIconTint below is a different code path (the
+	                           inventory sprite) and does work.
 	     ================================================================ -->
 	<append xpath="/blocks">
 		<block name="adamantSpikesTrap">
@@ -89,7 +98,6 @@
 			<property name="Material" value="MAdamant_shapes"/>
 			<property name="Shape" value="ModelEntity"/>
 			<property name="Model" value="@:Entities/Traps/ironSpikesTrapPrefab.prefab"/>
-			<property name="TintColor" value="7B4FB0"/>
 			<property name="CustomIcon" value="trapSpikesScrapIronMaster"/>
 			<property name="CustomIconTint" value="7B4FB0"/>
 			<property name="ImposterExclude" value="true"/>

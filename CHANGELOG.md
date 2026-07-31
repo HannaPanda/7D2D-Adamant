@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.2.2 - 2026-07-31
+
+### Fixed
+
+- **The Adamant Spikes Trap now actually wears the adamant texture** instead of looking like
+  a slightly darker iron trap. It keeps the vanilla spike shape; only the texture its model
+  samples is replaced, with the same `adamant_diffuse`/`adamant_normal` the block itself uses.
+  Nothing new is installed and the vanilla iron spikes trap is untouched.
+- **The trap's surface now has adamant's shine and relief**, not just its colour. The first
+  pass only reached the albedo: the model's shader calls its normal-map slot `_Normal`, which
+  the mod did not probe, and the surface map was still the iron spike's rusty, near-matte one.
+  Normal map and a uniform metallic/roughness surface matching the block are applied too now.
+- The old `TintColor="7B4FB0"` on the trap never did anything and has been removed. It ends up
+  as a write to a shader property this model's shader does not have, so it was silently
+  ignored. Even on a shader that has it, the value is *multiplied* onto the existing texture -
+  which is why vanilla only uses it on pale prefabs built for it (gun safes, chests) and never
+  on a trap. The inventory icon keeps its purple tint; that is a separate code path and it
+  does work.
+
+### Documentation
+
+- **The mod page claimed you could pick the spike trap back up. You cannot** - mining it
+  returns one Adamant Ingot, half of what it cost. Corrected on the Nexus description; the
+  README, which never covered the trap at all, now has a section for it.
+- The README still described the Adamant Ingot as forge-smelted. It has been a workbench
+  recipe since 1.1.0.
+
+### Verified on
+
+- **Game versions 3.0.0, 3.0.1 and 3.1.0**, each launched with the mod, checked in the log and
+  looked at on screen. This release changes `AdamantBlock.dll`, so the previous list was
+  discarded and re-established from scratch rather than carried over.
+
 ## 1.2.1 - 2026-07-28
 
 ### Fixed

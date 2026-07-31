@@ -4,24 +4,57 @@
 then paste it into the mod page's description field (the Nexus editor has a **BBCode** toggle -
 paste into that, not the rich-text view, or the tags get escaped).
 
-## Image placeholders
+## Images
 
-The file contains four `%%IMG_*%%` placeholders. Nexus cannot host an image from a
-description alone - it has to exist in the mod page's **Images** tab first:
+The description **hotlinks the screenshots straight out of this repo**, so a new one is a
+commit and not a round trip through the Nexus Images tab:
 
-1. Mod page → **Images** → upload the screenshot.
-2. Open the uploaded image, copy its **direct image URL**
-   (`https://staticdelivery.nexusmods.com/mods/.../images/....jpg`).
-3. Replace the placeholder with that URL.
+```
+https://raw.githubusercontent.com/HannaPanda/7D2D-Adamant/refs/heads/main/nexus/images/<file>
+```
 
-| Placeholder | What to shoot |
+| File | What it shows |
 |---|---|
-| `%%IMG_HERO%%` | The money shot. A finished adamant structure, good light, ideally at dusk so the purple reads. This is the thumbnail people judge the mod by. |
-| `%%IMG_SHAPES%%` | Several different shapes side by side (cube, ramp, wedge, plate, pillar) to prove `shapes="All"` works. Not the paint tool - adamant is deliberately not a paint (see CHANGELOG 1.2.0). |
-| `%%IMG_TRAPS%%` | A spike row in front of a base during a blood moon, zombies in it. Action sells traps far better than an empty row. |
-| `%%IMG_CRAFTING%%` | The workbench recipe open, or the three items laid out in inventory (ore → ingot → block). Proves the progression at a glance. |
+| `AdamantHero.jpg` | Title card over the finished base at dusk, with the four-icon feature strip. The thumbnail people judge the mod by. |
+| `AdamantFortress.jpg` | The same base plain: stilts and centre column in adamant, ladder above zombie reach. Shows the material doing its actual job and, incidentally, several shapes at once. |
+| `AdamantGround.jpg` | Looking down from the outrigger at a square of adamant set into the concrete floor. Backs the "shoot your own floor" section - the one use of the tool-vs-weapon gate a reader will not think of on their own. |
+| `AdamantTrap.jpg` | Close-up of the spike trap, purple crystalline and glossy. Also the visual proof that 1.2.2 fixed its look. |
 
-Fewer, better images beat more images. If you only shoot two, make them the hero and the traps.
+Both the Fortress and Ground shots carry an italic caption line underneath, because neither
+reads as a *feature* without one - a purple pillar is just a purple pillar until the text says
+the horde cannot chew it.
+
+**To swap an image:** drop the new file in `nexus/images/` under the same name, commit, push.
+The description needs no edit and the mod page updates on its next load - GitHub sends a short
+`max-age` on raw content, so it is a refresh, not a cache eviction.
+
+Rules for what goes in this folder:
+
+- **JPEG, max 1600 px wide, `-q:v 3`.** The originals are 1080p PNGs at 2.1-4.5 MB each;
+  hotlinked as-is the description would pull ~12.8 MB. Converted it is ~800 KB for all four:
+  ```
+  ffmpeg -y -i in.png -vf "scale='min(1600,iw)':-2" -q:v 3 out.jpg
+  ```
+- **Keep the filenames stable.** They are baked into the description; renaming one silently
+  breaks a live mod page.
+- The uncompressed originals are not kept here - this folder holds the web copies only.
+
+**Two things this does not replace:**
+
+1. **Still upload the screenshots to the mod page's Images tab.** The gallery, the thumbnail
+   and the search preview all come from there, not from the description. The hotlinking only
+   saves the copy-the-CDN-URL step for images embedded *in the body*.
+2. **Nexus renders `raw.githubusercontent.com` images fine** - confirmed on the 7 Dashes to
+   Die page, which uses the same setup. No fallback needed. (Should that ever change, upload
+   the files and paste the resulting `https://staticdelivery.nexusmods.com/mods/.../images/....jpg`
+   URLs instead; the layout is unchanged, only the four URLs differ.)
+
+**Push before pasting the description.** The URLs resolve only once `nexus/images/` is on
+GitHub - a description pasted from an unpushed working copy renders four broken images.
+
+Still missing, in rough order of value: **a blood-moon shot with zombies actually standing in
+the spike trap** (action sells traps; an empty row does not), and a crafting shot (ore → ingot
+→ block, or the open workbench recipe).
 
 ## Notes
 

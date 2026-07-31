@@ -16,7 +16,7 @@ Two editions are provided (install **one**):
 
 | Edition | Folder | Crafting |
 |---|---|---|
-| **Survival** (main) | `AdamantBlock/` | Rare **Adamant Ore** → forge-smelted **Adamant Ingot** → block |
+| **Survival** (main) | `AdamantBlock/` | Rare **Adamant Ore** → **Adamant Ingot** → block (workbench) |
 | **Creative** (optional) | `AdamantBlock-Creative/` | 1 wood → block, straight from the backpack |
 
 ## Compatibility
@@ -24,7 +24,7 @@ Two editions are provided (install **one**):
 Tested on **V 3.0.0 (b259)**, **V 3.0.1** and **V 3.1.0 (b14)**.
 
 Only game versions that were actually launched and verified are listed here. Other 3.x
-builds may well work - the mod is XML plus two Harmony patches - but they are untested,
+builds may well work - the mod is XML plus a handful of Harmony patches - but they are untested,
 and the Harmony patches are the part that can break silently on a new build. The tested
 list is re-established for every mod release; see `docs/build-and-release.md`.
 
@@ -47,12 +47,39 @@ list is re-established for every mod release; see `docs/build-and-release.md`.
 
 1. **Adamant Ore** - small chance (`prob 0.04`) to drop while harvesting deep
    ore veins (`terrOreIron` / `terrOreLead` / `terrOreCoal`).
-2. **Adamant Ingot** - smelted at the **forge** (crucible required):
+2. **Adamant Ingot** - crafted at the **workbench**:
    `25× Forged Steel + 20× Concrete Mix + 10× Scrap Polymers + 5× Scrap Lead + 1× Adamant Ore`.
+   The crucible gate is indirect - `resourceForgedSteel` is itself a forge recipe that
+   requires one.
 3. **Adamant Block** - crafted at the **workbench** from `1× Adamant Ingot`.
+4. **Adamant Spikes Trap** - crafted at the **workbench** from `2× Adamant Ingots`.
 
 Tuning: raise the ore `prob` in `blocks.xml`, or bump the block recipe `count`
 in `recipes.xml`, to taste.
+
+## Adamant Spikes Trap
+
+A second block, crafted at the workbench from **2 Adamant Ingots** (creative edition:
+1 wood, from the backpack).
+
+- **60 damage per hit**, against 33 for vanilla iron spikes.
+- **Never wears out** - it takes no damage from hurting things, where iron spikes break
+  after about six hits.
+- Same protection as the block: immune to zombies, weapons and explosions, and
+  **demolisher-proof** (it deliberately carries no `BlockTag="Spike"`, which is the only
+  thing `zombieDemolition` checks before stomping a trap for 999).
+- Slows whatever stands in it (`MovementFactor="0.25"`) - the player included.
+
+**Mining it returns 1 Adamant Ingot, not the trap itself.** The block cannot be picked up
+whole: it sets no `CanPickup`, and the only other route into `Block.PickupOrDrop` is the
+`BlockPickup` passive effect, which vanilla grants for the `Mine1`-`Mine4` tags only
+(landmines). So relocating a trap costs you one of the two ingots. That 1 ingot is the
+*base* harvest yield - the drop carries the standard vanilla `allHarvest,perkJunkMiner`
+tag, so harvest perks and the world's loot/harvest abundance setting scale it like any
+other block drop.
+
+Traps share a 1.5 s damage cooldown **per target**, not per block, so stacking more spikes
+does not multiply damage - a deeper field buys exposure time, not DPS.
 
 ## How it works
 
@@ -66,6 +93,11 @@ in `recipes.xml`, to taste.
   DXTnm) and hands the resulting atlas index to every adamant block. No paint
   entry is created, so no paint id ends up in your save.
   See `src/dll/AdamantAtlas.cs` and `docs/architecture/mechanisms.md`.
+- **Spikes-trap look** - the trap reuses the vanilla iron-spike model, which is a
+  `ModelEntity` block and therefore gets its material from the prefab, not from the block
+  atlas. Two postfixes on `BlockShapeModelEntity` clone that material once and point its
+  albedo/normal/surface slots at the mod's own textures. The prefab is never modified, so
+  the vanilla iron spikes trap keeps its own look. See `src/dll/AdamantTrapModel.cs`.
 
 ## Building from source
 

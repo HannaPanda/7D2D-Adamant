@@ -49,6 +49,7 @@ namespace AdamantBlock
 
         private static string bundleUri;          // "#<mod path>/Resources/adamant.unity3d?"
         private static Texture2D srcDiffuse, srcNormal;
+        private static bool sourcesTried;
 
         // The arrays we allocated. Kept so a second LoadTextureAtlas pass can tell
         // "already ours" from "vanilla reloaded them", and so the Unload guard below
@@ -77,6 +78,34 @@ namespace AdamantBlock
         {
             if (mod != null && !string.IsNullOrEmpty(mod.Path))
                 bundleUri = "#" + mod.Path.Replace('\\', '/') + BundlePath;
+        }
+
+        // The two textures the mod ships, loaded on demand. Exposed because the trap model
+        // (AdamantTrapModel) needs the same two files and must not depend on the atlas path
+        // having run - the two are independent: the atlas can bail out on a dedicated server
+        // or a texture-quality rebuild can happen long after a trap was placed.
+        internal static Texture2D SourceDiffuse { get { EnsureSources(); return srcDiffuse; } }
+        internal static Texture2D SourceNormal { get { EnsureSources(); return srcNormal; } }
+
+        // Sticky: a missing or malformed bundle is a deterministic failure, and this is
+        // reached once per placed trap block, so it must not retry or re-log.
+        private static bool EnsureSources()
+        {
+            if (!sourcesTried)
+            {
+                sourcesTried = true;
+                if (bundleUri != null)
+                {
+                    srcDiffuse = DataLoader.LoadAsset<Texture2D>(bundleUri + DiffuseAsset, false);
+                    srcNormal = DataLoader.LoadAsset<Texture2D>(bundleUri + NormalAsset, false);
+                    if (srcDiffuse == null || srcNormal == null)
+                        Log.Warning("[AdamantBlock] " + BundlePath.Trim('/', '?')
+                                    + " has no usable " + DiffuseAsset + "/" + NormalAsset
+                                    + " - block keeps texture " + DonorTextureId
+                                    + " and the trap keeps the vanilla model");
+                }
+            }
+            return srcDiffuse != null && srcNormal != null;
         }
 
         public static bool Owns(Texture tex)
@@ -200,15 +229,8 @@ namespace AdamantBlock
             int atlasSize = diffuse.width;
             int oldDepth = diffuse.depth;
 
-            if (srcDiffuse == null) srcDiffuse = DataLoader.LoadAsset<Texture2D>(bundleUri + DiffuseAsset, false);
-            if (srcNormal == null) srcNormal = DataLoader.LoadAsset<Texture2D>(bundleUri + NormalAsset, false);
-            if (srcDiffuse == null || srcNormal == null)
-            {
-                Log.Warning("[AdamantBlock] " + BundlePath.Trim('/', '?')
-                            + " has no usable " + DiffuseAsset + "/" + NormalAsset
-                            + " - block keeps texture " + DonorTextureId);
+            if (!EnsureSources())
                 return null;
-            }
 
             Log.Out("[AdamantBlock] atlas: live=" + (ReferenceEquals(opaque.textureAtlas, lastAtlas) ? "same as load" : "DIFFERENT from load")
                     + ", uvMapping " + (opaque.textureAtlas != null && opaque.textureAtlas.uvMapping != null

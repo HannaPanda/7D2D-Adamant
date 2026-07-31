@@ -1,8 +1,9 @@
 # Architecture - the custom mechanisms
 
-The mod combines two Harmony mechanisms and vanilla XML crafting, with no dependency on
+The mod combines three Harmony mechanisms and vanilla XML crafting, with no dependency on
 any other mod. The first three mechanisms are independent and meet on the `adamantShapes`
-block; the spike trap (mechanism 4) is a second block that reuses mechanisms 1 and 3.
+block; the spike trap (mechanism 4) is a second block that reuses mechanisms 1 and 3 and
+adds a Harmony hook of its own for its model.
 
 ## 1. Tool-vs-weapon damage gate (Harmony DLL)
 
@@ -131,9 +132,9 @@ ships none of the above.
 
 ## 4. Adamant Spikes Trap
 
-A second block, `adamantSpikesTrap`, in `Config/blocks.xml` of both editions. Pure XML - it
-needs no DLL change because it reuses the `MAdamant_shapes` material, and mechanism 1 matches
-on the material id.
+A second block, `adamantSpikesTrap`, in `Config/blocks.xml` of both editions. Its *behavior* is
+pure XML - it reuses the `MAdamant_shapes` material, and mechanism 1 matches on the material
+id, so the damage gate covers it for free. Its *look* needs the DLL (see below).
 
 `Class="TrunkTip"` is the vanilla spike-trap class (`BlockTrunkTip : BlockDamage`). Its
 constructor sets `IsCheckCollideWithEntity`, which is the flag `ChunkCluster.CheckCollisionWithBlocks`
@@ -160,13 +161,78 @@ Three properties carry the behavior:
 holding power for damage and permanence rather than being better on every axis. It slows the
 player too.
 
-Visuals reuse the vanilla prefab `@:Entities/Traps/ironSpikesTrapPrefab.prefab` recolored by
-`TintColor="7B4FB0"` (the adamant purple from `src/texture/gen_adamant_512.py`).
-`BlockShapeModelEntity.CloneModel` applies the tint whenever its alpha is `> 0`, so this needs
-no Unity work. The atlas texture from mechanism 2 does not apply here - a `ModelEntity` block
-gets its material from the prefab.
+### Look: the model is retextured, not tinted
+
+Visuals reuse the vanilla prefab `@:Entities/Traps/ironSpikesTrapPrefab.prefab`. The atlas
+texture from mechanism 2 does not reach it - a `ModelEntity` block gets its material from the
+prefab, not from the block atlas - so `src/dll/AdamantTrapModel.cs` swaps the texture that
+material samples instead.
+
+**`TintColor` was tried first and does not work here.** Two findings, both verified against
+3.0.1 `Assembly-CSharp.dll`:
+
+- The world path for a `ModelEntity` block is **not** `BlockShapeModelEntity.CloneModel` (an
+  earlier version of this document and of the `blocks.xml` comment said so and was wrong). It
+  is `BlockShapeModelEntity.OnBlockEntityTransformBeforeActivated`, which ends in
+  `BlockEntityData.SetMaterialColor("_Color", tintColor)` - a `MaterialPropertyBlock` carrying
+  a colour the shader *multiplies* onto the albedo. `CloneModel` covers the other instantiation
+  sites and additionally sets a `TintColor` property.
+- **This prefab's shader does not declare `_Color` at all**, so that write was a no-op, not a
+  bad colour. Its full property list, logged in game: `_Tint [Float]`, `_Cutoff`,
+  `_EmissionMultiply`, `_MainTex`, `_Normal`, `_Emissive`, `_RMOM`, `_MacroAO` - the tint knob
+  here is a **float** named `_Tint`. A `MaterialPropertyBlock` silently ignores properties the
+  shader does not declare, which is why nothing happened and nothing was logged.
+- The general rule behind that: `TintColor` is an albedo *multiplier* and only yields the
+  intended colour on a pale albedo authored for it. Vanilla sets it exclusively on gun safes,
+  munition boxes and chests. Nothing under `Entities/Traps` uses it, and `ironSpikesTrapPrefab`
+  draws from a single rust-brown metal material
+  (`Entities/Traps/Materials/ironSpikesTrap.mat`, texture `ironSpikesTrap.tga`) - so even on a
+  shader that did honour `_Color`, `#7B4FB0` over that would give dark mud, not adamant.
+
+The replacement clones that material once, points the clone's albedo/normal slots at the
+`adamant_diffuse` / `adamant_normal` the mod already ships for the atlas, and assigns it to the
+instantiated renderers via two postfixes - on `OnBlockEntityTransformBeforeActivated` (placed
+blocks) and on `CloneModel` (held item, previews). Notes on the implementation:
+
+- **The prefab and its material asset are never written to**, only clones are - so the vanilla
+  iron spikes trap keeps its own look.
+- **`sharedMaterials`, not `materials`**: reading `.materials` instantiates a private copy per
+  renderer, and the engine pools these model GameObjects. One clone is cached per distinct
+  source material; a `HashSet` of the clones' instance ids stops a pooled renderer that already
+  carries ours from being cloned again on reuse.
+- **Three slots, not one.** Confirmed in game: the material is `ironSpikesTrap` on shader
+  **`Game/Entity Tint Mask`**, exposing `_MainTex`, `_Normal`, `_Emissive`, `_RMOM`. The first
+  version probed `_BumpMap`/`_NormalMap` and so applied the albedo only - flat colour, no
+  relief, and the iron spike's own rusty near-matte surface map still in place ("the gloss is
+  missing"). `_Normal` takes `adamant_normal`; `_RMOM` gets a generated uniform surface with
+  the same physical values as the block's atlas slice (metallic 0.7, AO 0.9, emission 0,
+  roughness 0.35), 2×2 RGBA32, linear, no file needed.
+  ⚠ The atlas channel is **MOER**-ordered, this slot spells **RMOM** in its own name, so the
+  constant is re-ordered (`0.35, 0.7, 0.9, 0`). Alpha 0 is safe whether the trailing `M` means
+  emissive or tint mask.
+  ⚠ **That ordering is read off the property name, not proven.** The shader's description for
+  the slot is the bare string `"RMOM"` - it does not spell the channels out, the shader bundle
+  is LZ4-compressed, and no Managed DLL names the property. It is confirmed only by how the
+  trap looks in game (3.0.1, 2026-07-31). If a future build looks matte and non-metallic,
+  swapping R and G in `SurfaceRMOM` is the first thing to try.
+- Slot names are probed through `Material.HasProperty`, and the material's shader plus every
+  texture/float property **with its description** is logged once - packed maps spell their
+  channel order in the description, and that is the only proof available offline (the shader
+  bundle is compressed and no Managed DLL names `_RMOM`). The slots actually written are named
+  in the log too; a count alone hid the missing normal map the first time round.
+- No bundle (dedicated server, missing or malformed `adamant.unity3d`) means the trap keeps the
+  vanilla iron look, matching how the atlas injector degrades.
+
+`CustomIconTint="7B4FB0"` stays: the inventory icon is a different code path and does tint.
 
 Cost is 2 `adamantIngot` at the workbench with 1 refunded on harvest, a 50% relocation tax.
+**The block itself is never returned**, verified rather than assumed: `Block.PickupOrDrop`
+returns early unless `Block.CanPickup` (not set here), or `forcePickup`, or
+`EffectManager.GetValue(PassiveEffects.BlockPickup /*173*/, …, block.Tags) > 0` - and vanilla
+grants that effect only for the tags `Mine1`-`Mine4` (the Perception trap perk, four landmine
+blocks). The trap carries no `Tags` at all. The 1 ingot is the *base* Harvest yield; the drop
+uses the standard vanilla `tag="allHarvest,perkJunkMiner"` (692 vanilla uses), so harvest perks
+and `XUiM_Recipes.HarvestingOutputModifier` scale it like any other block drop.
 The creative edition uses `1 resourceWood` for both the recipe and the repair/harvest entries,
 since it ships no ingot.
 
@@ -175,6 +241,7 @@ since it ships no ingot.
 | File | Mechanism |
 |---|---|
 | `AdamantBlock.dll` + `src/dll/AdamantBlockMod.cs` | tool-vs-weapon gate |
+| `src/dll/AdamantTrapModel.cs` | spikes-trap model retexture |
 | `Config/materials.xml` | stability + explosion immunity |
 | `Config/painting.xml` + `Resources/adamant.unity3d` | custom texture |
 | `Config/blocks.xml` | block definitions (`adamantShapes`, `adamantSpikesTrap`) + ore drops |

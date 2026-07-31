@@ -12,9 +12,11 @@ mechanisms and two shippable editions.
 - **Custom purple crystalline texture** on the full `shapes="All"` set, injected into the
   opaque block atlas by our own DLL - **no dependencies** (this replaced the
   OcbCustomTextures requirement in 1.2.0).
-- **Survival crafting chain**: rare Adamant Ore → forge-smelted Adamant Ingot → block.
-- **Adamant Spikes Trap**: an indestructible, non-degrading spike trap. Pure XML - it
-  reuses the material, so the DLL gate covers it for free.
+- **Survival crafting chain**: rare Adamant Ore → Adamant Ingot → block, both at the workbench.
+- **Adamant Spikes Trap**: an indestructible, non-degrading spike trap. Behavior is pure
+  XML - it reuses the material, so the DLL gate covers it for free; the vanilla spike model
+  is retextured with the mod's own texture by the DLL (`TintColor` cannot do it, see
+  `docs/architecture/mechanisms.md`).
 
 New content goes **into this mod**, not into a companion mod: 7DTD 3.0.1 has no
 dependency system at all (`Mod`/`ModInfo` expose only Name/DisplayName/Description/
@@ -59,7 +61,8 @@ extra localization rows).
 Detailed documentation lives in `docs/`:
 
 - [`docs/architecture/mechanisms.md`](docs/architecture/mechanisms.md) - how the three
-  custom mechanisms (tool-vs-weapon DLL, atlas texture injection, survival crafting chain)
+  custom mechanisms (tool-vs-weapon DLL, atlas texture injection, spikes-trap model
+  retexture, survival crafting chain)
   are wired, with a file-to-mechanism map.
 - [`docs/conventions/modding.md`](docs/conventions/modding.md) - verified vanilla item names,
   the Localization.csv RFC-CSV quoting rule, the item-icon convention, and the path/tooling
@@ -82,7 +85,7 @@ matching `docs/` file in the same commit.
   mods, but Adamant no longer uses it and must keep working with it absent - the two do not
   interact (we never touch the paint id space it manages).
 
-## How the three mechanisms are wired
+## How the mechanisms are wired
 
 1. **Tool-vs-weapon** - `src/dll/AdamantBlockMod.cs`: Harmony prefix on
    `Block.DamageBlock` / `Block.OnBlockDamaged`. Blocks the hit when the source is not a
@@ -94,9 +97,15 @@ matching `docs/` file in the same commit.
    appends a `uvMapping` entry and writes its index onto every `MAdamant_shapes` block.
    `blocks.xml` ships `Texture="356"` (steel) as the fallback. **No paint entry** - that
    id space is what drifts and breaks saves. Details in `docs/architecture/mechanisms.md`.
-3. **Survival chain** - `Config/items.xml` (`adamantOre`, `adamantIngot`, tinted/iconed),
-   `Config/recipes.xml` (forge ingot + workbench block), `Config/blocks.xml` (rare
-   `adamantOre` Harvest drop on `terrOreIron/Lead/Coal`).
+3. **Spikes-trap look** - `src/dll/AdamantTrapModel.cs`: postfixes on
+   `BlockShapeModelEntity.OnBlockEntityTransformBeforeActivated` and `.CloneModel` clone the
+   reused vanilla trap material once and fill three slots - `_MainTex`, **`_Normal`** (that
+   is what this shader calls the bump slot) and `_RMOM` (generated uniform surface). The
+   prefab and its material asset are never modified.
+4. **Survival chain** - `Config/items.xml` (`adamantOre`, `adamantIngot`, tinted/iconed),
+   `Config/recipes.xml` (**both** ingot and block at the workbench - the ingot must *not*
+   be a `craft_area="forge"` recipe, see `docs/architecture/mechanisms.md` for why),
+   `Config/blocks.xml` (rare `adamantOre` Harvest drop on `terrOreIron/Lead/Coal`).
 
 ## Common tasks
 

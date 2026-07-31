@@ -35,7 +35,8 @@
 	     Adamant Spikes Trap. Identical to the survival edition except that
 	     repair/harvest use wood instead of the (creative-absent) ingot.
 	     See the survival blocks.xml for the full rationale behind
-	     Damage / Damage_received / the deliberately missing BlockTag.
+	     Damage / Damage_received / the deliberately missing BlockTag, and
+	     for why the model is retextured by the DLL instead of tinted.
 	     ================================================================ -->
 	<append xpath="/blocks">
 		<block name="adamantSpikesTrap">
@@ -48,7 +49,6 @@
 			<property name="Material" value="MAdamant_shapes"/>
 			<property name="Shape" value="ModelEntity"/>
 			<property name="Model" value="@:Entities/Traps/ironSpikesTrapPrefab.prefab"/>
-			<property name="TintColor" value="7B4FB0"/>
 			<property name="CustomIcon" value="trapSpikesScrapIronMaster"/>
 			<property name="CustomIconTint" value="7B4FB0"/>
 			<property name="ImposterExclude" value="true"/>
