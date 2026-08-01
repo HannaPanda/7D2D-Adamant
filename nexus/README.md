@@ -1,8 +1,8 @@
 # Nexus mod page assets
 
 `description.bbcode` is the source of truth for the Nexus Mods description. Edit it here,
-then paste it into the mod page's description field (the Nexus editor has a **BBCode** toggle -
-paste into that, not the rich-text view, or the tags get escaped).
+then paste it into the mod page's description field. The rich-text editor converts the
+BBCode correctly on paste, so no mode switch is needed.
 
 ## Images
 
