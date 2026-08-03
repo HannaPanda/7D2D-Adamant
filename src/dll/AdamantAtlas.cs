@@ -35,6 +35,10 @@ namespace AdamantBlock
         // (MOER) slice without shipping a third texture.
         public const int DonorTextureId = 356; // vanilla steel
 
+        // Name on our uvMapping entry. Also how a later pass recognizes an entry it already
+        // appended, so it must stay stable.
+        private const string TextureName = "adamant";
+
         private const string DiffuseAsset = "adamant_diffuse";
         private const string NormalAsset = "adamant_normal";
         private const string BundlePath = "/Resources/adamant.unity3d?";
@@ -49,7 +53,8 @@ namespace AdamantBlock
 
         private static string bundleUri;          // "#<mod path>/Resources/adamant.unity3d?"
         private static Texture2D srcDiffuse, srcNormal;
-        private static bool sourcesTried;
+        private static bool sourcesTried;    // one load attempt has been made
+        private static bool sourcesMissing;  // ... and it failed for good
 
         // The arrays we allocated. Kept so a second LoadTextureAtlas pass can tell
         // "already ours" from "vanilla reloaded them", and so the Unload guard below
@@ -70,7 +75,7 @@ namespace AdamantBlock
         // Later rebuilds (a texture-quality change) come back through the atlas postfix,
         // where those frameworks have already re-applied inside loadSingleArray - so there
         // the postfix itself is the late one.
-        private static bool injected;
+        private static bool started;
         private static TextureAtlas lastAtlas;
         private static MeshDescriptionCollection lastCollection;
 
@@ -87,25 +92,52 @@ namespace AdamantBlock
         internal static Texture2D SourceDiffuse { get { EnsureSources(); return srcDiffuse; } }
         internal static Texture2D SourceNormal { get { EnsureSources(); return srcNormal; } }
 
-        // Sticky: a missing or malformed bundle is a deterministic failure, and this is
-        // reached once per placed trap block, so it must not retry or re-log.
+        // Two different failures live here and they need opposite handling.
+        //
+        // "The bundle is not there" (dedicated server, missing or malformed file) is
+        // deterministic: this is reached once per placed trap block, so it must not retry
+        // and must not re-log - hence sourcesMissing.
+        //
+        // "The textures were there and are gone again" is not. Unloading an asset bundle
+        // destroys its objects whether or not anything still references them, and a
+        // destroyed UnityEngine.Object compares equal to null while the field still holds
+        // it (Unity's fake-null). Treating that as the deterministic case is what left the
+        // trap wearing the plain vanilla iron look for the rest of the process after a
+        // world reload. Reload instead.
         private static bool EnsureSources()
         {
-            if (!sourcesTried)
+            if (srcDiffuse != null && srcNormal != null) return true;
+            if (sourcesMissing || bundleUri == null) return false;
+
+            bool reloading = sourcesTried;
+            sourcesTried = true;
+
+            srcDiffuse = DataLoader.LoadAsset<Texture2D>(bundleUri + DiffuseAsset, false);
+            srcNormal = DataLoader.LoadAsset<Texture2D>(bundleUri + NormalAsset, false);
+
+            // Texture quality does not only shrink the atlas, it also puts every texture the
+            // game loaded at a non-zero mipmap limit - ours included. Graphics.CopyTexture
+            // refuses to copy across differing limits, and a Texture2DArray has no limit at
+            // all, so without this the atlas fill silently does nothing below Full and the
+            // block renders as steel. The importer flag (ignoreMipmapLimit: 1 in the .meta)
+            // says the same thing; this repeats it so a bundle rebuilt without it cannot
+            // reintroduce the bug.
+            ExemptFromMipmapLimit(srcDiffuse);
+            ExemptFromMipmapLimit(srcNormal);
+
+            if (srcDiffuse == null || srcNormal == null)
             {
-                sourcesTried = true;
-                if (bundleUri != null)
-                {
-                    srcDiffuse = DataLoader.LoadAsset<Texture2D>(bundleUri + DiffuseAsset, false);
-                    srcNormal = DataLoader.LoadAsset<Texture2D>(bundleUri + NormalAsset, false);
-                    if (srcDiffuse == null || srcNormal == null)
-                        Log.Warning("[AdamantBlock] " + BundlePath.Trim('/', '?')
-                                    + " has no usable " + DiffuseAsset + "/" + NormalAsset
-                                    + " - block keeps texture " + DonorTextureId
-                                    + " and the trap keeps the vanilla model");
-                }
+                sourcesMissing = true;
+                Log.Warning("[AdamantBlock] " + BundlePath.Trim('/', '?')
+                            + " has no usable " + DiffuseAsset + "/" + NormalAsset
+                            + " - block keeps texture " + DonorTextureId
+                            + " and the trap keeps the vanilla model");
+                return false;
             }
-            return srcDiffuse != null && srcNormal != null;
+
+            if (reloading)
+                Log.Out("[AdamantBlock] source textures had been unloaded - reloaded from the bundle");
+            return true;
         }
 
         public static bool Owns(Texture tex)
@@ -124,13 +156,17 @@ namespace AdamantBlock
         {
             lastAtlas = atlas;
             lastCollection = collection;
-            if (injected) Extend();
+            // Retried on every rebuild after the deferred start, whether or not the last
+            // attempt worked: a quality change hands us vanilla arrays again, so failing
+            // at one quality level must not disable the mod for the next one.
+            if (started) Extend();
         }
 
         // Runs the deferred first injection once every config is parsed.
         public static void ExtendWhenReady()
         {
-            if (!injected) Extend();
+            started = true;
+            Extend();
             BindBlocks();
         }
 
@@ -165,7 +201,7 @@ namespace AdamantBlock
                 // are already ours.
                 bool ready = ownDiffuse != null && ReferenceEquals(opaque.TexDiffuse, ownDiffuse);
                 Texture[] retired = ready ? null : GrowArrays(opaque, map[DonorTextureId].index);
-                if (!ready && retired == null) return;
+                if (!ready && retired == null) { RevertBlocks(); return; }
 
                 // Order matters: ReloadTextureArrays binds the materials from the ATLAS
                 // fields (Material.mainTexture <- textureAtlas.diffuseTexture, _BumpMap <-
@@ -180,7 +216,6 @@ namespace AdamantBlock
                 VerifyBinding(opaque);
 
                 AtlasTextureId = AppendMapping(atlas, ownDiffuse.depth - 1);
-                injected = true;
                 BindBlocks();
 
                 // Only once every reference has been moved over: the old arrays are
@@ -193,6 +228,7 @@ namespace AdamantBlock
             {
                 Log.Error("[AdamantBlock] atlas injection failed, block keeps texture "
                           + DonorTextureId + ": " + e);
+                RevertBlocks();
             }
         }
 
@@ -241,10 +277,13 @@ namespace AdamantBlock
                     + " | normal " + Describe(normal) + " <- " + Describe(srcNormal)
                     + " | specular " + Describe(specular));
 
+            // Albedo and normal are the feature; the surface response is a gloss detail that
+            // has always been allowed to fall back to the donor's channel. Treating all three
+            // as required is what turned a cosmetic miss into a block with no texture at all.
             Texture2D uniformSpecular = BuildUniform(specular, SurfaceResponse);
-            Texture2DArray grownDiffuse = CopyWithExtraSlice(diffuse, donorSlice, srcDiffuse);
-            Texture2DArray grownNormal = CopyWithExtraSlice(normal, donorSlice, srcNormal);
-            Texture2DArray grownSpecular = CopyWithExtraSlice(specular, donorSlice, uniformSpecular);
+            Texture2DArray grownDiffuse = CopyWithExtraSlice(diffuse, donorSlice, srcDiffuse, true);
+            Texture2DArray grownNormal = CopyWithExtraSlice(normal, donorSlice, srcNormal, true);
+            Texture2DArray grownSpecular = CopyWithExtraSlice(specular, donorSlice, uniformSpecular, false);
             if (uniformSpecular != null) UnityEngine.Object.Destroy(uniformSpecular);
             if (grownDiffuse == null || grownNormal == null || grownSpecular == null)
             {
@@ -284,12 +323,18 @@ namespace AdamantBlock
                 // the whole channel.
                 bool linear = !GraphicsFormatUtility.IsSRGBFormat(like.graphicsFormat);
                 flat = new Texture2D(like.width, like.height, TextureFormat.RGBA32, true, linear);
+                flat.name = "adamant_surface_response";
                 var pixels = new Color[like.width * like.height];
                 for (int i = 0; i < pixels.Length; i++) pixels[i] = value;
                 flat.SetPixels(pixels);
                 flat.Apply(true, false);
                 flat.Compress(true);
                 flat.Apply(true, false);
+
+                // Set here and not right after the constructor: Compress and Apply rebuild
+                // the texture and the flag does not survive them. Setting it too early is
+                // how an unnamed texture still at limit 1 reached Overlay.
+                ExemptFromMipmapLimit(flat);
 
                 if (flat.graphicsFormat == like.graphicsFormat) return flat;
 
@@ -335,7 +380,8 @@ namespace AdamantBlock
         // depth+1 copy of an atlas array. The extra slice starts as a duplicate of the
         // donor slice (so it is always valid and correctly formatted) and is then
         // overwritten with `overlay` when one is given.
-        private static Texture2DArray CopyWithExtraSlice(Texture2DArray source, int donorSlice, Texture2D overlay)
+        private static Texture2DArray CopyWithExtraSlice(Texture2DArray source, int donorSlice,
+                                                        Texture2D overlay, bool overlayRequired)
         {
             int slices = source.depth;
             int mips = source.mipmapCount;
@@ -354,8 +400,11 @@ namespace AdamantBlock
                 for (int mip = 0; mip < mips; mip++)
                     Graphics.CopyTexture(source, donorSlice, mip, copy, slices, mip);
 
-            if (overlay != null)
-                Overlay(copy, slices, overlay);
+            if (overlay != null && !Overlay(copy, slices, overlay, overlayRequired) && overlayRequired)
+            {
+                Destroy(copy);
+                return null;
+            }
             return copy;
         }
 
@@ -363,29 +412,60 @@ namespace AdamantBlock
         // TexQuality 1, so the matching mip of the source has to be picked instead of
         // its mip 0 - copying a 512 mip into a 256 slice is what produces Unity's
         // "invalid source mip level" spam and a garbage slice.
-        private static void Overlay(Texture2DArray target, int slice, Texture2D source)
+        //
+        // Every failure here is the whole feature failing: the slice was pre-filled from
+        // the donor, so the block would render as flawless vanilla steel with nothing but
+        // an INF line to show for it. That is why these are errors and why the caller
+        // throws the copy away instead of publishing it.
+        private static bool Overlay(Texture2DArray target, int slice, Texture2D source, bool required)
         {
             if (source.graphicsFormat != target.graphicsFormat)
-            {
-                Log.Warning("[AdamantBlock] " + source.name + " is " + source.graphicsFormat
-                            + ", atlas wants " + target.graphicsFormat + " - slice left as steel");
-                return;
-            }
+                return Fail(required, Name(source) + " is " + source.graphicsFormat
+                                      + ", atlas wants " + target.graphicsFormat);
+
+            // Texture quality does not only shrink the atlas, it also puts the textures the
+            // game has loaded at a non-zero mipmap limit - ours included, since they come in
+            // through the same asset pipeline. Graphics.CopyTexture refuses to copy across
+            // limits ("different mipmap limits. Source 1, Destination 0"), so the two source
+            // textures must be exempt from it: "Ignore Mipmap Limit" in the importer, which
+            // is ignoreMipmapLimit: 1 in their .meta.
+            if (source.activeMipmapLimit != 0)
+                return Fail(required, Name(source) + " is at mipmap limit "
+                                      + source.activeMipmapLimit
+                                      + " while a Texture2DArray is always at 0, so"
+                                      + " Graphics.CopyTexture rejects the pair");
 
             int skip = 0;
             int width = source.width;
             while (width > target.width && skip < source.mipmapCount - 1) { width >>= 1; skip++; }
             if (width != target.width)
-            {
-                Log.Warning("[AdamantBlock] " + source.name + " is " + source.width
-                            + "px with " + source.mipmapCount + " mips and cannot fill a "
-                            + target.width + "px atlas slice - slice left as steel");
-                return;
-            }
+                return Fail(required, Name(source) + " is " + source.width + "px with "
+                                      + source.mipmapCount + " mips and cannot fill a "
+                                      + target.width + "px atlas slice");
 
             int mips = Math.Min(target.mipmapCount, source.mipmapCount - skip);
             for (int mip = 0; mip < mips; mip++)
                 Graphics.CopyTexture(source, 0, mip + skip, target, slice, mip);
+            return true;
+        }
+
+        // Same diagnosis, two severities. On albedo and normal a miss costs the whole
+        // feature, so it is an error and the caller discards the copy. On the surface
+        // response the slice simply keeps the donor's channel, which is the fallback this
+        // path has always had - loud enough to find, not fatal.
+        private static bool Fail(bool required, string reason)
+        {
+            if (required) Log.Error("[AdamantBlock] " + reason + " - injection aborted");
+            else Log.Warning("[AdamantBlock] " + reason
+                             + " - slice keeps the donor channel (steel gloss will show)");
+            return false;
+        }
+
+        // A texture built at runtime has no name until one is set, and "[AdamantBlock]  is
+        // at mipmap limit 1" is not a message anyone can act on.
+        private static string Name(Texture tex)
+        {
+            return tex == null || string.IsNullOrEmpty(tex.name) ? "<unnamed texture>" : tex.name;
         }
 
         // One more uvMapping record, cloned from the donor so material and color match
@@ -393,6 +473,14 @@ namespace AdamantBlock
         private static int AppendMapping(TextureAtlas atlas, int slice)
         {
             UVRectTiling[] map = atlas.uvMapping;
+
+            // A world reload comes back through here with the atlas itself untouched, so
+            // without this every reload would append another copy of the same entry and
+            // grow uvMapping for the life of the process.
+            if (map.Length > 0 && map[map.Length - 1].textureName == TextureName
+                                && map[map.Length - 1].index == slice)
+                return map.Length - 1;
+
             int id = map.Length;
             Array.Resize(ref map, id + 1);
 
@@ -402,7 +490,7 @@ namespace AdamantBlock
             entry.blockW = 1;
             entry.blockH = 1;
             entry.bGlobalUV = false;
-            entry.textureName = "adamant";
+            entry.textureName = TextureName;
             entry.color = Color.white;
 
             map[id] = entry;
@@ -415,11 +503,30 @@ namespace AdamantBlock
         // the engine expands into one Block per shape.
         public static void BindBlocks()
         {
-            if (AtlasTextureId < 0 || Block.list == null) return;
+            if (AtlasTextureId >= 0) Rebind(AtlasTextureId);
+        }
 
-            int from = boundTextureId >= 0 ? boundTextureId : DonorTextureId;
-            if (from == AtlasTextureId) return;
+        // An injection that bailed leaves the blocks on an id from the previous atlas, and
+        // the uvMapping the game just rebuilt is too short to contain it - renderFace then
+        // silently substitutes a default, which looks even less like adamant than the steel
+        // fallback. Put them back on the id blocks.xml ships.
+        private static void RevertBlocks()
+        {
+            AtlasTextureId = -1;
+            Rebind(DonorTextureId);
+        }
 
+        private static void Rebind(int to)
+        {
+            if (Block.list == null) return;
+
+            // Two ids can legitimately be sitting on an adamant face: the one we last bound,
+            // and the fallback from blocks.xml. Loading a world re-parses blocks.xml and
+            // rebuilds Block.list from scratch, so every face is back on the fallback while
+            // boundTextureId still names the id from the previous world - matching on that
+            // alone found nothing, left the id stale, and no later atlas rebuild could
+            // recover it either. That is why this scans for both and never short-circuits.
+            int previous = boundTextureId;
             int touched = 0;
             for (int i = 0; i < Block.list.Length; i++)
             {
@@ -430,29 +537,39 @@ namespace AdamantBlock
 
                 for (int channel = 0; channel < block.textureInfos.Length; channel++)
                 {
-                    if (block.textureInfos[channel].singleTextureId == from)
+                    if (Replaceable(block.textureInfos[channel].singleTextureId, previous, to))
                     {
-                        block.textureInfos[channel].singleTextureId = AtlasTextureId;
+                        block.textureInfos[channel].singleTextureId = to;
                         touched++;
                     }
                     int[] sides = block.textureInfos[channel].sideTextureIds;
                     if (sides == null) continue;
                     for (int side = 0; side < sides.Length; side++)
-                        if (sides[side] == from) { sides[side] = AtlasTextureId; touched++; }
+                        if (Replaceable(sides[side], previous, to)) { sides[side] = to; touched++; }
                 }
             }
 
+            boundTextureId = to;
             if (touched > 0)
-            {
-                boundTextureId = AtlasTextureId;
-                Log.Out("[AdamantBlock] texture id " + AtlasTextureId + " applied to "
+                Log.Out("[AdamantBlock] texture id " + to + " applied to "
                         + touched + " adamant block faces");
-            }
+        }
+
+        private static bool Replaceable(int id, int previous, int to)
+        {
+            return id != to && (id == previous || id == DonorTextureId);
         }
 
         private static void Destroy(Texture2DArray array)
         {
             if (array != null) UnityEngine.Object.Destroy(array);
+        }
+
+        // Takes a texture out of the texture-quality mipmap limit, so its mip 0 stays
+        // resident and Graphics.CopyTexture will pair it with a Texture2DArray.
+        private static void ExemptFromMipmapLimit(Texture2D tex)
+        {
+            if (tex != null) tex.ignoreMipmapLimit = true;
         }
     }
 

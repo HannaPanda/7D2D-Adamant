@@ -42,6 +42,14 @@ before every release; procedure in [`docs/build-and-release.md`](docs/build-and-
 Pure XML changes may ride on a smoke test; **any DLL/Harmony change invalidates the whole
 list**.
 
+**The GUI pass has a second axis: Texture Quality.** Run it at **Full, Half and Quarter**, and
+look at a placed block on each. The game rebuilds the whole opaque atlas when that setting
+changes - different size, different mip count, and a different mipmap limit on every loaded
+texture - so the injection in `AdamantAtlas.cs` runs down a different path per level. 1.2.2
+shipped a block that rendered as plain vanilla steel on anything below Full, and it went
+unnoticed for a release because the GUI pass only ever ran on the developer machine's own
+setting. Switching the setting mid-session is enough; a restart is not required.
+
 ## Repository layout
 
 | Path | What |
@@ -168,12 +176,30 @@ setting/clearing the variable is the on/off switch. Only the Survival step sets
 
 - The MO2 path contains `[NoDelete]` - PowerShell treats `[]` as wildcards; use
   `-LiteralPath`. In Python use the Windows form `C:/Modlists/...`, not `/c/...`.
+- **The log reports MO2's virtual path, not the real one.** A run launched through MO2 loads
+  the mod from `%APPDATA%\7DaysToDie\Mods\AdamantBlock\`, which does not exist on disk - the
+  USVFS maps the modlist folder there for the game process only. Do not conclude from that
+  line that the deployment path moved; the file to overwrite is always the MO2 one above.
 - **Unquoted commas in Localization.csv silently break parsing** (text truncates at the
   first comma, later columns shift).
 - **PowerShell 5.1 `Compress-Archive` writes backslash zip paths** (malformed per ZIP
   spec) - build release zips with `zip` (CI) or Python `zipfile`, never Compress-Archive.
 - A **running game locks `AdamantBlock.dll`** → overwrite fails with "Permission denied".
   Close 7DTD before deploying the DLL.
+- **`Graphics.CopyTexture` silently refuses any pair whose mipmap limits differ.** It writes
+  `different mipmap limits. Source 1, Destination 0` to the Unity log, then returns normally -
+  no exception, no return value, nothing the mod can branch on. Texture Quality below Full
+  puts every loaded `Texture2D` at a non-zero limit, *including ones created at runtime*,
+  while `Texture2DArray` has no such property and is always at 0. So any Texture2D that is
+  copied into an atlas array needs `ignoreMipmapLimit = true` - both as the importer flag
+  (`ignoreMipmapLimit: 1` in the `.meta`) and defensively in code. Symptom without it: the
+  block renders as flawless vanilla steel, because the slice keeps its donor pre-fill.
+- **An unloaded bundle asset is fake-null, not null.** Unloading an asset bundle destroys its
+  objects regardless of what still references them; the field keeps the reference but `== null`
+  starts returning true. So "I already tried and it was null" is not a safe thing to cache -
+  `ReferenceEquals(x, null)` distinguishes a real null (a verdict that stays true) from a
+  destroyed object (a state that can be recovered by reloading). This is what made the spikes
+  trap fall back to plain iron for the rest of a session after a world reload.
 - Lead item is `resourceScrapLead`.
 
 ## Deeper 7DTD knowledge

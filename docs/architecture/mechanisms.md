@@ -96,6 +96,18 @@ at half size, so the injector copies from the matching **mip level** of the sour
 mip 0. If anything does not line up - missing bundle, wrong format, dedicated server with no
 textures at all - it logs the reason and leaves the block on texture 356 (steel).
 
+Size and format are not the whole story: `CopyTexture` also refuses a pair whose **mipmap
+limits** differ, and lowering Texture Quality puts every loaded `Texture2D` at a non-zero
+limit while a `Texture2DArray` is always at 0. The two bundle textures and the generated
+surface-response texture are therefore held at `ignoreMipmapLimit = true`, in the importer
+and again in code. Without it the copies are all rejected - with nothing but Unity's own
+`different mipmap limits` line to show for it - and the slice keeps the steel it was
+pre-filled with, which is indistinguishable from a vanilla block. That was the 1.2.2 bug.
+
+The failure path is deliberately loud and total: an abort is a `Log.Error`, the half-filled
+array is thrown away rather than published, and the blocks are put back on 356 - never left
+on an id from a previous atlas, which a rebuilt `uvMapping` may be too short to contain.
+
 ## 3. Survival crafting chain
 
 Three XML files, survival edition only:

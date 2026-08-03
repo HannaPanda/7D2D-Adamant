@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.2.3 - 2026-08-03
+
+### Fixed
+
+- **The block renders in adamant on every Texture Quality setting, not just Full.** On Half
+  and below the block looked exactly like a vanilla steel block - in the world, on the
+  toolbelt and in the inventory. Lowering texture quality puts the game's loaded textures at
+  a non-zero mipmap limit, and `Graphics.CopyTexture` refuses any pair whose limits differ,
+  so every write into the mod's atlas slice was rejected and the slice kept the steel it had
+  been pre-filled with. The mod's textures are now exempt from that limit. The spikes trap
+  was never affected: it applies its texture straight to a material and never goes through
+  the atlas, which is why it stayed purple while the block did not.
+- **A failed texture injection now falls back visibly instead of silently.** Every abort in
+  that path was logged as INF or WRN and still published an atlas entry, so the total loss of
+  the mod's main feature looked like a normal startup. Those aborts are errors now, a failed
+  fill is discarded rather than published, and the blocks are put back on the fallback texture
+  from `blocks.xml` instead of being left on an id the rebuilt atlas no longer contains.
+- **A texture-quality change no longer disables the texture until the next restart.** After a
+  failed injection the mod stopped retrying on later atlas rebuilds, so one pass at a bad
+  quality level kept the block steel even after switching back.
+- **The block keeps its texture when you load a second world without restarting.** Loading a
+  world re-parses `blocks.xml` and rebuilds the block list, putting every adamant face back on
+  the fallback texture, while the mod still looked for the id it had assigned in the previous
+  world. It found none, so the blocks stayed steel - and because the stale id was never
+  cleared, no later atlas rebuild could recover them either; only restarting the game did.
+- **The spikes trap no longer reverts to plain iron for the rest of a session.** Unloading an
+  asset bundle destroys its textures whether or not anything still uses them, and the mod
+  treated that as the same permanent failure as a bundle that was never there - so after a
+  world reload every trap that came back into view was retextured with nothing. The mod now
+  tells the two apart and reloads, revalidates cached trap materials instead of trusting them
+  for the whole process, and only quits for good when the bundle is genuinely unusable.
+
+### Verified on
+
+- _TODO before tagging: this release changes `AdamantBlock.dll` and the texture bundle, so the
+  version list is discarded and re-established from scratch - test bench run plus a GUI pass at
+  **Texture Quality Full, Half and Quarter**, which is the axis this release is about._
+
 ## 1.2.2 - 2026-07-31
 
 ### Fixed

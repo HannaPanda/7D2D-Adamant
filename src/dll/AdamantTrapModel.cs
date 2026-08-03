@@ -58,9 +58,11 @@ namespace AdamantBlock
         private static readonly Color SurfaceRMOM = new Color(0.35f, 0.7f, 0.9f, 0f);
         private static Texture2D surfaceTex;
 
-        // Source material instance id -> our reskinned clone (null = tried and not usable,
-        // cached so a failure does not repeat per placed block). One clone per distinct
-        // source material, not per renderer or per block instance.
+        // Source material instance id -> our reskinned clone. A cached null means "this
+        // material has none of the slots we fill", which cannot change and so is not retried
+        // per placed block. Anything that *can* change - textures unloaded, clone destroyed -
+        // is not cached as a verdict; see GetClone. One clone per distinct source material,
+        // not per renderer or per block instance.
         private static readonly Dictionary<int, Material> clones = new Dictionary<int, Material>();
 
         // Instance ids of the clones themselves. The engine pools the model GameObjects and
@@ -112,7 +114,16 @@ namespace AdamantBlock
             for (int i = 0; i < mats.Length; i++)
             {
                 Material src = mats[i];
-                if (src == null || ours.Contains(src.GetInstanceID())) continue;
+                if (src == null) continue;
+                if (ours.Contains(src.GetInstanceID()))
+                {
+                    // Already ours - unless an asset unload took its textures out from
+                    // under it, in which case it now draws as the vanilla trap and has to
+                    // be replaced like any other source material. Without this the pooled
+                    // renderers would never reach the check in GetClone at all.
+                    if (HasLiveTextures(src)) continue;
+                    ours.Remove(src.GetInstanceID());
+                }
 
                 Material clone = GetClone(src);
                 if (clone == null) continue;
@@ -126,15 +137,27 @@ namespace AdamantBlock
         {
             int key = src.GetInstanceID();
             Material clone;
-            if (clones.TryGetValue(key, out clone)) return clone;
+            if (clones.TryGetValue(key, out clone))
+            {
+                // ReferenceEquals, not ==: a genuine null is the cached verdict "this
+                // material has none of the slots we fill", which stays true. A Unity
+                // fake-null is a clone that was destroyed by an asset unload, which does
+                // not - and has to be rebuilt rather than handed out.
+                if (ReferenceEquals(clone, null)) return null;
+                if (clone != null && HasLiveTextures(clone)) return clone;
+                if (clone != null) ours.Remove(clone.GetInstanceID());
+                clones.Remove(key);
+            }
 
             Texture2D diffuse = AdamantAtlas.SourceDiffuse;
             if (diffuse == null)
             {
                 // No bundle (dedicated server, missing or malformed adamant.unity3d). The
                 // trap then simply keeps the vanilla iron look - same graceful degradation
-                // the atlas injector falls back to.
-                clones[key] = null;
+                // the atlas injector falls back to. Deliberately NOT cached as a null
+                // verdict: EnsureSources is already sticky for the deterministic case, and
+                // caching here would swallow the recoverable one - textures that were
+                // unloaded and can be loaded again - for the rest of the process.
                 return null;
             }
 
@@ -176,6 +199,19 @@ namespace AdamantBlock
 
             clones[key] = clone;
             return clone;
+        }
+
+        // A clone outlives the textures it samples when an asset unload destroys them, and
+        // an untextured material on this shader draws as exactly the plain iron trap the
+        // retexture exists to replace. The stale clone is dropped from the caches but not
+        // destroyed: pooled renderers may still hold it, and destroying it would leave them
+        // with no material at all, which is worse than a briefly wrong one.
+        private static bool HasLiveTextures(Material clone)
+        {
+            for (int i = 0; i < AlbedoProps.Length; i++)
+                if (clone.HasProperty(AlbedoProps[i]))
+                    return clone.GetTexture(AlbedoProps[i]) != null;
+            return true;
         }
 
         // A uniform surface needs no file and no compression: 2x2 is the smallest texture
