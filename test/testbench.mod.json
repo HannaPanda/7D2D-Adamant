@@ -1,0 +1,59 @@
+{
+  "modId": "adamantblock",
+  "displayName": "Adamant Block (Creative)",
+  "repo": "C:\\Users\\sourc\\7D2D-Adamant",
+  "variants": [
+    {
+      "name": "Creative",
+      "folder": "AdamantBlock-Creative"
+    },
+    {
+      "name": "Survival",
+      "folder": "AdamantBlock"
+    }
+  ],
+  "dependencies": [
+    "quartz",
+    "gears"
+  ],
+  "stage1": {
+    "harmonyPattern": "Harmony patches applied",
+    "requireHarmony": true,
+    "extraFatalPatterns": []
+  },
+  "stage2": {
+    "logFilter": "AdamantBlock|HarmonyException| EXC | ERR ",
+    "evidencePatterns": [
+      "opaque atlas .*slice \\d+ added",
+      "texture id \\d+ applied"
+    ],
+    "evidenceLabel": "Atlas im Log belegt",
+    "visualQuestion": "Sah der platzierte Block korrekt aus (lila-kristallin, nicht stahlgrau)?"
+  },
+  "profiles": [
+    {
+      "name": "matrix",
+      "variant": "Creative",
+      "versions": [
+        "3.0.0",
+        "3.0.1",
+        "3.1.0"
+      ],
+      "stages": [
+        "headless"
+      ],
+      "notes": "Ersetzt Invoke-TestMatrix.ps1."
+    },
+    {
+      "name": "gui",
+      "variant": "Creative",
+      "versions": [
+        "3.1.0"
+      ],
+      "stages": [
+        "gui"
+      ],
+      "notes": "Sichtpruefung auf der neuesten Version. Ersetzt Start-Gui.ps1."
+    }
+  ]
+}
