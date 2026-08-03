@@ -21,7 +21,7 @@ Two editions are provided (install **one**):
 
 ## Compatibility
 
-Tested on **V 3.0.0 (b259)**, **V 3.0.1** and **V 3.1.0 (b14)**.
+Tested on **V 3.0.0 (b259)**, **V 3.0.1 (b4)** and **V 3.1.0 (b14)**.
 
 Only game versions that were actually launched and verified are listed here. Other 3.x
 builds may well work - the mod is XML plus a handful of Harmony patches - but they are untested,

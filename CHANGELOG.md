@@ -34,9 +34,11 @@
 
 ### Verified on
 
-- _TODO before tagging: this release changes `AdamantBlock.dll` and the texture bundle, so the
-  version list is discarded and re-established from scratch - test bench run plus a GUI pass at
-  **Texture Quality Full, Half and Quarter**, which is the axis this release is about._
+- **Game versions 3.0.0, 3.0.1 and 3.1.0**, each launched with the mod, checked in the log and
+  looked at on screen. This release changes both `AdamantBlock.dll` and the texture bundle, so
+  the previous list was discarded and re-established from scratch rather than carried over.
+- **Texture Quality Full, Half and Quarter**, switched during a running session, and a world
+  reload without restarting the game - the two axes this release is about.
 
 ## 1.2.2 - 2026-07-31
 
