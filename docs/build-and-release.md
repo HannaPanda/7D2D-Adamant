@@ -27,7 +27,9 @@ It must contain two texture assets named `adamant_diffuse` (DXT1, no alpha, 512Â
   and normal.
 - Item icons: the shipped icons are ChatGPT-rendered; hi-res originals are
   `src/texture/*_source.png`. `gen_icons.py` produces the earlier procedural fallbacks.
-- Localization: `python src/texture/gen_localization.py`.
+- Localization: `python src/texture/gen_localization.py` - writes `Localization_<edition>.csv`
+  **and** `.txt` for each edition; both belong in each edition's `Config/` as
+  `Localization.csv` and `Localization.txt` (V3.x reads one, V2.x the other).
 
 ## Version compatibility testing
 

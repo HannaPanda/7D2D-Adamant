@@ -120,9 +120,11 @@ matching `docs/` file in the same commit.
 - **Change a recipe** → `AdamantBlock/Config/recipes.xml`. Verified vanilla item names:
   `resourceForgedSteel`, `resourceConcreteMix`, `resourceScrapPolymers`,
   `resourceScrapLead` (NOT `resourceLead`), `resourceWood`.
-- **Add/fix a translation** → `AdamantBlock/Config/Localization.csv`. 13 language columns.
+- **Add/fix a translation** → `AdamantBlock/Config/Localization.csv` **and the identical
+  `Localization.txt` next to it** - V3.x reads the `.csv`, V2.x the `.txt`, and the wrong name
+  fails silently (see `docs/conventions/modding.md`). 13 language columns.
   **Must be RFC-CSV**: any value containing a comma has to be quoted. Regenerate with
-  `python src/texture/gen_localization.py` to guarantee correct quoting; file is UTF-8.
+  `python src/texture/gen_localization.py`, which writes both files; UTF-8.
 - **Item icons** → `UIAtlases/ItemIconAtlas/<name>.png`, **160×160 RGBA**, referenced by
   `<property name="CustomIcon" value="<name>"/>`. Hi-res originals: `src/texture/*_source.png`.
 - **Rebuild the DLL** → `cd src/dll && DOTNET_ROLL_FORWARD=LatestMajor dotnet build -c Release -o out`.

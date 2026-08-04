@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Generate 7DTD Localization.csv (survival + creative) with all 13 languages
-   and correct RFC-CSV quoting (fields with commas get quoted, like vanilla)."""
+"""Generate the 7DTD mod localization (survival + creative) with all 13 languages
+   and correct RFC-CSV quoting (fields with commas get quoted, like vanilla).
+
+   Each table is written twice, as .csv and as .txt: the engine hardcodes the file
+   name it looks for, and the name changed between the game's major lines - V3.x
+   reads Config/Localization.csv, V2.x reads Config/Localization.txt. Both sit
+   behind an `if (SdFile.Exists(...))` in Localization.LoadPatchDictionaries, so a
+   missing file produces no warning, no error and no log line at all; the mod just
+   shows raw keys instead of names. Shipping both files keeps one build working on
+   either line, and neither version minds the other's file."""
 import csv, sys
 
 LANGS = ["english","german","spanish","french","italian","japanese","koreana",
@@ -110,12 +118,14 @@ def row(key):
     return r
 
 def write(path, keys):
-    with open(path, "w", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
-        w.writerow(HEADER)
-        for k in keys:
-            w.writerow(row(k))
-    print("wrote", path)
+    base = path[:-4] if path.endswith(".csv") else path
+    for target in (base + ".csv", base + ".txt"):
+        with open(target, "w", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
+            w.writerow(HEADER)
+            for k in keys:
+                w.writerow(row(k))
+        print("wrote", target)
 
 survival_keys = list(T.keys())
 creative_keys = ["adamantShapes:VariantHelper","adamantBlockGroupDesc",

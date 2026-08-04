@@ -16,7 +16,21 @@ Used in recipes and drops. The lead item is the trap:
 | Wood | `resourceWood` |
 | Coal (ore icon/mesh base) | `resourceCoal` |
 
-## Localization.csv
+## Localization.csv *and* Localization.txt
+
+**Both files ship, with identical content.** The engine hardcodes the name it looks for and
+that name changed between the game's major lines: `Localization.LoadPatchDictionaries` reads
+`Config/Localization.csv` from V3.0 on and `Config/Localization.txt` on V2.x. Both sit behind
+an `if (SdFile.Exists(...))`, so the wrong name produces **no warning, no error and no log
+line** - the mod loads, Harmony patches, the smoke test stays green, and every block and item
+shows its raw key instead of a name. That is how it went unnoticed on 2.6 until the run logs
+of two versions were compared line by line and one `INF [MODS] Loading localization from mod`
+was missing.
+
+Neither version minds the other's file: `Mod.DetectContents` excludes only its own
+localization name and otherwise just sets a `GameConfigMod` flag, and `XmlPatcher` looks for
+vanilla config names, so it never touches either. `gen_localization.py` writes the `.txt`
+twin automatically - copy both into each edition.
 
 Real RFC-4180 CSV. Any value containing a comma must be quoted, internal quotes doubled.
 An unquoted comma silently splits the field into extra columns - the text truncates at the
