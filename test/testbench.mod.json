@@ -46,12 +46,13 @@
       "name": "gui",
       "variant": "Creative",
       "versions": [
+        "2.6",
         "3.1.0"
       ],
       "stages": [
         "gui"
       ],
-      "notes": "Sichtpruefung auf der neuesten Version. Ersetzt Start-Gui.ps1."
+      "notes": "Sichtpruefung auf der aeltesten und der neuesten Version - die Atlas-Injektion laeuft dort am weitesten auseinander. Ersetzt Start-Gui.ps1."
     }
   ]
 }

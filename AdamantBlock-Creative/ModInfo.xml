@@ -4,7 +4,7 @@
 	<DisplayName value="Adamant Block (Creative)" />
 	<Description value="Near-indestructible building block and spike trap: zero damage from zombies, animals, explosions and player WEAPONS. Only mineable with tools. 10x steel stability. Custom purple crystalline texture, no other mods required. CREATIVE edition: both craft from 1 wood in the backpack." />
 	<Author value="Hanna" />
-	<Version value="1.2.3.0" />
+	<Version value="1.2.4.0" />
 	<Website value="https://github.com/HannaPanda/7D2D-Adamant" />
 	<SkipWithAntiCheat value="true" />
 </xml>

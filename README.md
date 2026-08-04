@@ -1,4 +1,4 @@
-# Adamant Block - 7 Days to Die (V3.0 / V3.1)
+# Adamant Block - 7 Days to Die (V2.6, V3.0 / V3.1)
 
 A near-indestructible building block with a custom purple crystalline texture.
 
@@ -21,9 +21,9 @@ Two editions are provided (install **one**):
 
 ## Compatibility
 
-Tested on **V 3.0.0 (b259)**, **V 3.0.1 (b4)** and **V 3.1.0 (b14)**.
+Tested on **V 2.6 (b14)**, **V 3.0.0 (b259)**, **V 3.0.1 (b4)** and **V 3.1.0 (b14)**.
 
-Only game versions that were actually launched and verified are listed here. Other 3.x
+Only game versions that were actually launched and verified are listed here. Other
 builds may well work - the mod is XML plus a handful of Harmony patches - but they are untested,
 and the Harmony patches are the part that can break silently on a new build. The tested
 list is re-established for every mod release; see `docs/build-and-release.md`.

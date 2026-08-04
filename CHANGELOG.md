@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.4 - 2026-08-05
+
+### Added
+
+- **7 Days to Die V 2.6 (b14) is now a supported game version.** Both editions run there
+  unchanged; the Harmony patches bind by parameter name, and the two signatures that moved
+  between the game's major lines carry no parameter the mod touches.
+
+### Fixed
+
+- **On V 2.x the block, the spike trap and the crafting items showed internal keys instead of
+  their names.** Below V3.0 the game looks for a mod's localization under a different file
+  name and says nothing when it is absent, so the translations were never loaded there. Both
+  file names now ship with identical content, and each game line reads the one it wants.
+
 ## 1.2.3 - 2026-08-03
 
 ### Fixed
