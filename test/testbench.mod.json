@@ -22,10 +22,11 @@
     "logFilter": "AdamantBlock|HarmonyException| EXC | ERR ",
     "evidencePatterns": [
       "opaque atlas .*slice \\d+ added",
-      "texture id \\d+ applied"
+      "texture id \\d+ applied",
+      "trap model retextured on .*\\| shader '"
     ],
-    "evidenceLabel": "Atlas im Log belegt",
-    "visualQuestion": "Sah der platzierte Block korrekt aus (lila-kristallin, nicht stahlgrau)?"
+    "evidenceLabel": "Atlas- und Trap-Pfad im Log belegt",
+    "visualQuestion": "Block lila-kristallin (nicht stahlgrau) UND Spikefalle lila-kristallin (nicht magenta, nicht Eisen-Look)? Beides mindestens einmal aus der Naehe ansehen."
   },
   "profiles": [
     {

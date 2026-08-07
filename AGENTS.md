@@ -202,6 +202,21 @@ setting/clearing the variable is the on/off switch. Only the Survival step sets
   `ReferenceEquals(x, null)` distinguishes a real null (a verdict that stays true) from a
   destroyed object (a state that can be recovered by reloading). This is what made the spikes
   trap fall back to plain iron for the rest of a session after a world reload.
+- **A destroyed material on a pooled renderer draws flat magenta, and `== null` cannot tell it
+  from an empty slot.** A runtime `new Material(...)` handed to a renderer is destroyed by the
+  engine on a world reload; the renderer keeps drawing it, in magenta, with the mesh intact and
+  nothing in the log. The trap here is the guard `if (mat == null) continue;` - it *also* skips
+  the destroyed material, so the very renderer that needs fixing is the one never touched again.
+  **`ReferenceEquals(mat, null)` is the discriminator**: reference-null = genuinely empty and
+  unidentifiable; fake-null = destroyed but still a managed object whose `GetInstanceID()` maps
+  back to what it used to be, so it can be replaced. Confirmed 2026-08-07 (3.0.0 GUI run, log
+  line `material destroyed`).
+- **A cloned material also outlives its shader.** `new Material(src)` copies the *reference* to
+  a shader belonging to the bundle `src` came from; release that bundle and Unity draws
+  `Hidden/InternalErrorShader` - the same magenta. So **validating a cached runtime material
+  means checking material, shader and textures**, not just the textures (those are the mod's
+  own and rarely die). Check `mat.shader == null` *before* reading `shader.name`; a destroyed
+  shader is fake-null and `.name` throws on it.
 - Lead item is `resourceScrapLead`.
 
 ## Deeper 7DTD knowledge

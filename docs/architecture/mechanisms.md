@@ -210,8 +210,39 @@ blocks) and on `CloneModel` (held item, previews). Notes on the implementation:
   iron spikes trap keeps its own look.
 - **`sharedMaterials`, not `materials`**: reading `.materials` instantiates a private copy per
   renderer, and the engine pools these model GameObjects. One clone is cached per distinct
-  source material; a `HashSet` of the clones' instance ids stops a pooled renderer that already
+  source material; a map from the clones' instance ids stops a pooled renderer that already
   carries ours from being cloned again on reuse.
+- ⚠ **Nothing about the clone may be trusted across activations - it outlives what it is made
+  of.** Symptom: **flat bright magenta, silhouette intact, no exception, nothing in the log.**
+  Reported from a 16 GB machine running ~50 mods; reproduced in a 3.0.0 GUI run here, right
+  after a world reload.
+  **The confirmed cause is the clone itself being destroyed** (logged as `material destroyed`).
+  It is a runtime `Material` referenced only by a static cache and by pooled renderers, and the
+  engine disposes of it on a world reload. **`ReferenceEquals` versus `==` is the whole fix
+  here**: a destroyed `UnityEngine.Object` answers `== null` while still being a live managed
+  object that knows its instance id, so it can be looked up and replaced - an *empty* slot is
+  reference-null and cannot. The first version of this file conflated the two and skipped the
+  renderer with `if (src == null) continue;`, which is precisely why a pooled renderer stayed
+  magenta forever: it was never handed a vanilla material again, so nothing ever reached it.
+  A second, non-confirmed path is covered alongside it: the clone's *shader* belongs to the
+  Addressables bundle the prefab came from, and releasing that bundle would leave the clone
+  pointing at nothing, which Unity draws with `Hidden/InternalErrorShader` - the same magenta.
+  `StaleReason` therefore re-checks material, shader *and* textures on every activation.
+  Three details that are load-bearing:
+  - **The shader is checked before its name is read.** A destroyed `Shader` is Unity-fake-null,
+    and `shader.name` on it throws `MissingReferenceException` rather than returning anything.
+    A live shader that Unity has already swapped for `Hidden/InternalErrorShader` is the second
+    case and is caught by name.
+  - **The source material is cached alongside the clone**, because a renderer that has been
+    reskinned no longer carries the vanilla material. Rebuilding from the stale clone via
+    `new Material(clone)` would copy the very shader that died. Retired clone ids stay in the
+    id map for the same reason: dropping one would send a renderer still carrying it down the
+    "unknown vanilla material" path and clone it again.
+- **What was applied is logged, not just that something was.** Each rebuild names the shader the
+  clone ended up on, and the albedo/normal with size, format and `activeMipmapLimit`; each
+  discard names *why* (`shader destroyed with its bundle`, `albedo texture unloaded`, …). This
+  fault leaves no trace of its own anywhere in the game's log and could not be reproduced on the
+  developer machine, so a user's log has to be able to settle it alone.
 - **Three slots, not one.** Confirmed in game: the material is `ironSpikesTrap` on shader
   **`Game/Entity Tint Mask`**, exposing `_MainTex`, `_Normal`, `_Emissive`, `_RMOM`. The first
   version probed `_BumpMap`/`_NormalMap` and so applied the albedo only - flat colour, no

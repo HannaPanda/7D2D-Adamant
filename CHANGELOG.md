@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.2.5 - 2026-08-05
+
+### Fixed
+
+- **The Adamant Spikes Trap no longer turns flat magenta and stays that way until the game is
+  restarted.** The mod gives the trap its look through its own copy of the model's material,
+  and the game destroys that copy from time to time - a world reload is enough, and a machine
+  short on memory does it far more often. The trap was then left holding nothing, which is
+  what the engine draws in magenta, and every later attempt to fix it skipped straight past
+  the very models that needed it. The mod now recognises that state and puts a working
+  material back.
+- **A trap that has already gone magenta is repaired as soon as it comes back into view**,
+  instead of staying wrong until the next restart. Traps already standing in a base are
+  covered, not only newly placed ones.
+- **The same is now true for anything else the model's material can lose.** The shader it
+  draws with belongs to the game and is released together with the model; whatever is missing,
+  the material is rebuilt from the original rather than reused on faith.
+
+### Changed
+
+- **The log now records what the trap model was actually given** - shader, texture, size,
+  format and mipmap limit - plus a warning naming the reason whenever a material has to be
+  rebuilt. This class of fault leaves no trace of its own anywhere, so the log has to carry
+  enough to settle it from a bug report alone.
+
 ## 1.2.4 - 2026-08-05
 
 ### Added
