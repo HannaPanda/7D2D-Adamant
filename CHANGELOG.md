@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.6 - 2026-08-10
+
+### Fixed
+
+- **Taking down one Adamant Spikes Trap no longer turns a trap next to it bright magenta.**
+  Every trap was drawing with one and the same material, and the game frees the materials of
+  any model it takes down - so removing a single trap left all the others holding nothing,
+  which is what the engine draws in magenta. Each trap now carries its own copy, and taking
+  one down cannot touch the ones still standing.
+- **A trap that has lost its material is put right the next time it is drawn, in every case.**
+  The previous attempt could recognise the fault but not always repair it: once the old
+  material was gone, nothing was left on the model to say what belonged there. That is now
+  remembered per trap instead of being worked out afterwards.
+
+### Changed
+
+- **The log records how many trap materials are in use and how many had to be replaced.** This
+  class of fault leaves no trace of its own, so the log has to carry enough to settle it from a
+  bug report alone - the counter for replacements is the one that names the fault above.
+
 ## 1.2.5 - 2026-08-05
 
 ### Fixed

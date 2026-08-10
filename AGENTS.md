@@ -107,9 +107,15 @@ matching `docs/` file in the same commit.
    id space is what drifts and breaks saves. Details in `docs/architecture/mechanisms.md`.
 3. **Spikes-trap look** - `src/dll/AdamantTrapModel.cs`: postfixes on
    `BlockShapeModelEntity.OnBlockEntityTransformBeforeActivated` and `.CloneModel` clone the
-   reused vanilla trap material once and fill three slots - `_MainTex`, **`_Normal`** (that
-   is what this shader calls the bump slot) and `_RMOM` (generated uniform surface). The
-   prefab and its material asset are never modified.
+   reused vanilla trap material and fill three slots - `_MainTex`, **`_Normal`** (that is
+   what this shader calls the bump slot) and `_RMOM` (generated uniform surface). The prefab
+   and its material asset are never modified. **Two levels of material, and the split is
+   load-bearing**: one quarantined MASTER per source material (textures applied, never
+   assigned to a renderer) plus one COPY per renderer, which the engine's pool is allowed to
+   destroy along with the model it belongs to. Sharing a single runtime material across
+   pooled models is what produced the magenta traps up to 1.2.5 - see the pool gotcha below.
+   Each renderer's slot is remembered (renderer id -> master key), because a destroyed
+   material cannot be identified from the renderer afterwards.
 4. **Survival chain** - `Config/items.xml` (`adamantOre`, `adamantIngot`, tinted/iconed),
    `Config/recipes.xml` (**both** ingot and block at the workbench - the ingot must *not*
    be a `craft_area="forge"` recipe, see `docs/architecture/mechanisms.md` for why),
@@ -202,15 +208,31 @@ setting/clearing the variable is the on/off switch. Only the Survival step sets
   `ReferenceEquals(x, null)` distinguishes a real null (a verdict that stays true) from a
   destroyed object (a state that can be recovered by reloading). This is what made the spikes
   trap fall back to plain iron for the rest of a session after a world reload.
-- **A destroyed material on a pooled renderer draws flat magenta, and `== null` cannot tell it
-  from an empty slot.** A runtime `new Material(...)` handed to a renderer is destroyed by the
-  engine on a world reload; the renderer keeps drawing it, in magenta, with the mesh intact and
-  nothing in the log. The trap here is the guard `if (mat == null) continue;` - it *also* skips
-  the destroyed material, so the very renderer that needs fixing is the one never touched again.
-  **`ReferenceEquals(mat, null)` is the discriminator**: reference-null = genuinely empty and
-  unidentifiable; fake-null = destroyed but still a managed object whose `GetInstanceID()` maps
-  back to what it used to be, so it can be replaced. Confirmed 2026-08-07 (3.0.0 GUI run, log
-  line `material destroyed`).
+- **The engine destroys every runtime material it finds on a pooled model it tears down, so a
+  runtime material must never be shared between models.** This is the root cause of the magenta
+  spikes trap, verified in IL (3.0.1) and reproduced deterministically:
+  `GameObjectPool.DestroyObject` calls `Utils.CleanupMaterialsOfRenderers` before
+  `Destroy(obj)`, and `Utils.CleanupMaterials` is `if (mat && mat.GetInstanceID() < 0)
+  Destroy(mat);`. **A negative instance id is Unity's marker for "created at runtime, not
+  loaded from an asset"**, which the pool reads as "an instance we made, ours to free" - and
+  every `new Material(...)` has one. With one clone shared across all traps, destroying *any*
+  trap's model killed the material for all of them. **When it hits**: `PoolItem.updateTime`
+  gates the shrink and is set to `Time.time + 5f` only when an object is *taken* from the pool,
+  never on return - so mining a trap more than 5 s after the last placement lands it in a pool
+  whose clock has expired and the next `FrameUpdate` frees it, i.e. the neighbour goes magenta
+  **immediately**; within 5 s of placing it takes up to 5 s. One object per update either way
+  (`maxDestroysPerUpdate = 1`), which is what made it look like a random victim. Repro: two
+  traps side by side, wait, mine the first -> the second goes magenta where it stands.
+  Fix = master in quarantine + one copy per renderer (mechanism 3 above).
+- **A destroyed material cannot be identified from the renderer, so remember the slot instead.**
+  `ReferenceEquals(mat, null)` distinguishes a genuinely empty slot from a Unity fake-null
+  (destroyed but still a managed object whose `GetInstanceID()` maps back to what it used to
+  be) - **but only while something still holds that managed wrapper**. Drop the last reference
+  and the same slot starts reading back as a plain `null`, at which point no id lookup can
+  recover it; that is what "empty material slot, cannot be repaired from here" in a 1.2.5 log
+  actually was. So keep a reference to what you handed out (and to the renderer, so
+  `rend == null` stays a usable liveness check for pruning), and key the repair on the
+  renderer, not on the corpse in its slot.
 - **A cloned material also outlives its shader.** `new Material(src)` copies the *reference* to
   a shader belonging to the bundle `src` came from; release that bundle and Unity draws
   `Hidden/InternalErrorShader` - the same magenta. So **validating a cached runtime material

@@ -23,7 +23,8 @@
     "evidencePatterns": [
       "opaque atlas .*slice \\d+ added",
       "texture id \\d+ applied",
-      "trap model retextured on .*\\| shader '"
+      "trap master material built from .*\\| shader '",
+      "trap renderer materials: \\d+ copies"
     ],
     "evidenceLabel": "Atlas- und Trap-Pfad im Log belegt",
     "visualQuestion": "Block lila-kristallin (nicht stahlgrau) UND Spikefalle lila-kristallin (nicht magenta, nicht Eisen-Look)? Beides mindestens einmal aus der Naehe ansehen."
