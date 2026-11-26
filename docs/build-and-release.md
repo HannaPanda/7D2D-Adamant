@@ -106,21 +106,15 @@ Besides the two files, each tag also updates the mod page itself:
 ### File descriptions
 
 The description on a Nexus *file* is what a user reads next to the download button, so it
-answers "which of these two do I want?" first and "what changed?" second. Never ship
-boilerplate like "Automated upload from tag vX.Y.Z". The workflow builds each description as:
+answers "which of these two do I want?". Never ship boilerplate like "Automated upload from
+tag vX.Y.Z". Each description is one short paragraph: what this edition is (Survival: mine
+ore, smelt, craft at the workbench; Creative: 1 wood, for builders and testing), "install this
+OR the other one", the tested version, EAC off, and a link to the release.
 
-1. **What this edition is**, in the user's terms - Survival: find ore, smelt an ingot, craft
-   at the workbench; Creative: 1 wood from the backpack, for builders and testing. Both say
-   "install this OR the other one, not both".
-2. **Install constraints** - no other mods required, EAC off (Harmony DLL), multiplayer
-   needs client + server.
-3. **Mini changelog** - built by the `Build mini changelog` step from the `## <version>`
-   section of `CHANGELOG.md`: up to 6 top-level bullets, each flattened to one line
-   (~180 chars, whole sentences where they fit), followed by a link to the full changelog.
-   No matching section → the blurb plus the link, so a forgotten changelog entry never
-   breaks the release.
+⚠ **Nexus rejects a file description over 255 characters** with a 422, after the GitHub
+Release is already published (measured 2026-11-26; 1.2.7 failed this way with the old
+blurb-plus-mini-changelog text). What changed goes to the mod's Changelogs tab instead, from
+the `changelog` input of the upload step.
 
 The blurbs live in `release.yml` next to each upload step; edit them there when an edition's
-premise changes. Because only the bullet's opening sentences survive, **write CHANGELOG
-bullets so the first sentence states the change** - the rest of the bullet can hold the
-reasoning for readers of the repo.
+premise changes, and keep each under 255 characters with the expressions filled in.

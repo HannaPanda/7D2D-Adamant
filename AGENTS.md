@@ -157,11 +157,10 @@ matching `docs/` file in the same commit.
 | Variable | `NEXUSMODS_FILE_ID_SURVIVAL` | Files tab → "API Info" on the mod page |
 | Variable | `NEXUSMODS_FILE_ID_CREATIVE` | ditto, Creative file entry |
 
-Each Nexus **file description** is composed in the workflow: what that edition is (Survival =
-find ore/smelt/craft, Creative = 1 wood from the backpack, install one not both) + install
-constraints + a mini changelog generated from the `## <version>` section of `CHANGELOG.md`.
-So **write CHANGELOG bullets whose first sentence states the change** - only the opening
-sentences (~180 chars, max 6 bullets) reach Nexus. Details in
+Each Nexus **file description** is a short paragraph in the workflow: what that edition is
+(Survival = find ore/smelt/craft, Creative = 1 wood from the backpack, install one not both),
+the tested version, EAC off, a link to the release. **Nexus caps it at 255 characters**; what
+changed goes to the Changelogs tab from the `CHANGELOG.md` bullets. Details in
 [`docs/build-and-release.md`](docs/build-and-release.md).
 
 The tag becomes the Nexus version with the leading `v` stripped. Both upload steps are

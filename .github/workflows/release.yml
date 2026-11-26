@@ -101,80 +101,6 @@ jobs:
       # button, so it says what this edition IS, then what changed. The mini
       # changelog is the current version's CHANGELOG.md section, flattened to at
       # most 6 one-line bullets. No section for this version -> blurb only.
-      - name: Build mini changelog
-        id: notes
-        env:
-          VERSION: ${{ steps.ver.outputs.version }}
-        run: |
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import os, re
-
-          version = os.environ["VERSION"]
-          lines = open("CHANGELOG.md", encoding="utf-8").read().splitlines()
-
-          # the "## <version> - <date>" section, up to the next "## "
-          body, inside = [], False
-          for line in lines:
-              if line.startswith("## "):
-                  if inside:
-                      break
-                  inside = line[3:].strip().startswith(version + " ")
-                  continue
-              if inside:
-                  body.append(line)
-
-          # top-level "- " bullets, continuation lines folded in
-          bullets, cur = [], None
-          for line in body:
-              if line.startswith("- "):
-                  if cur:
-                      bullets.append(cur)
-                  cur = line[2:]
-              elif cur is not None and line.startswith("  ") and line.strip():
-                  cur += " " + line.strip()
-              elif cur:
-                  bullets.append(cur)
-                  cur = None
-          if cur:
-              bullets.append(cur)
-
-          def plain(s):
-              s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)  # md links -> text
-              s = s.replace("**", "").replace("`", "")
-              return re.sub(r"\s+", " ", s).strip()
-
-          def condense(text, limit=180):
-              """Whole sentences up to `limit`; word-truncate if that stays too short."""
-              if len(text) <= limit:
-                  return text
-              kept = ""
-              for sentence in re.split(r"(?<=\.)\s+", text):
-                  if kept and len(kept) + len(sentence) > limit:
-                      break
-                  kept = (kept + " " + sentence).strip()
-                  if len(kept) >= 120:
-                      break
-              if len(kept) >= 70:
-                  return kept
-              short = text[:limit].rsplit(" ", 1)[0].rstrip(" ,;-")
-              return short + "..." if len(short) < len(text) else text
-
-          out = ["- " + condense(plain(b)) for b in bullets[:6]]
-
-          changelog = ""
-          if out:
-              changelog = "What's new in %s:\n%s\n\n" % (version, "\n".join(out))
-          changelog += "Full changelog: %s/%s/releases/tag/%s" % (
-              os.environ["GITHUB_SERVER_URL"],
-              os.environ["GITHUB_REPOSITORY"],
-              os.environ["GITHUB_REF_NAME"],
-          )
-
-          print("changelog<<__EOF__")
-          print(changelog)
-          print("__EOF__")
-          PY
-
       # The mod page's Changelogs tab gets this version's CHANGELOG.md bullets in full,
       # one entry per line. The Nexus endpoint only appends, so re-running a tag adds the
       # same lines a second time. No section for this version -> nothing is posted.
@@ -225,17 +151,13 @@ jobs:
           # Appends this version's CHANGELOG.md bullets to the Changelogs tab.
           mod_id: ${{ env.NEXUS_MOD_UID }}
           changelog: ${{ steps.clentries.outputs.entries }}
-          description: |
-            Survival version of the mod: you have to find Adamant Ore while mining
-            iron, lead or coal, smelt it into an Adamant Ingot and craft the block
-            and the spike trap at the workbench. Install this OR the Creative
-            edition, not both.
-
-            Tested on game version ${{ env.TESTED_VERSIONS }}. No other mods required.
-            Contains a Harmony DLL, so EasyAntiCheat must be off. Multiplayer: install
-            on client and server.
-
-            ${{ steps.notes.outputs.changelog }}
+          # Nexus rejects a file description over 255 characters (422). What changed goes
+          # to the Changelogs tab via `changelog`, so this stays a short summary.
+          description: >-
+            Survival edition: mine Adamant Ore, smelt it, craft the block and spike trap at
+            the workbench. Install this OR Creative. Tested on ${{ env.TESTED_VERSIONS }}.
+            EasyAntiCheat off.
+            Changelog: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}
 
       - name: Upload Creative edition to Nexus Mods
         if: ${{ vars.NEXUSMODS_FILE_ID_CREATIVE != '' }}
@@ -248,17 +170,13 @@ jobs:
           version: ${{ steps.ver.outputs.version }}
           category: optional
           archive_existing_version: true
-          description: |
-            Creative / cheat version of the mod: no ore, no ingot, no unlocks - you
-            craft the block and the spike trap from 1 wood straight out of your
-            backpack. For builders and testing. Install this OR the Survival
-            edition, not both.
-
-            Tested on game version ${{ env.TESTED_VERSIONS }}. No other mods required.
-            Contains a Harmony DLL, so EasyAntiCheat must be off. Multiplayer: install
-            on client and server.
-
-            ${{ steps.notes.outputs.changelog }}
+          # Nexus rejects a file description over 255 characters (422). What changed goes
+          # to the Changelogs tab via `changelog`, so this stays a short summary.
+          description: >-
+            Creative edition: block and spike trap from 1 wood, no ore, no unlocks. For
+            builders and testing. Install this OR Survival. Tested on ${{ env.TESTED_VERSIONS }}.
+            EasyAntiCheat off.
+            Changelog: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}
 
       # The mod page description is nexus/description.bbcode, sent as is. Nexus stores it
       # exactly as if it had been saved in the website editor (v3 editMod), so the repo

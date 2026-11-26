@@ -75,7 +75,7 @@ the spike trap** (action sells traps; an empty row does not), and a crafting sho
   Harmony vocabulary, no class or file names. Say what someone notices and what to do about it,
   keep the reason only where it affects a decision (a removed feature, a save-related risk), and
   say plainly when saves are safe. It is deliberately not the same text as `CHANGELOG.md` (repo,
-  technical), the per-file mini changelog CI generates for the Files tab, nor the Changelogs tab,
+  technical), the short per-file description CI sends for the Files tab, nor the Changelogs tab,
   which CI fills from the `CHANGELOG.md` bullets. Old versions can be trimmed once they are
   several releases back; the link to the full history covers them. Update it **before** tagging:
   the tag is what publishes it.
