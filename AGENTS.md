@@ -1,10 +1,10 @@
-# AGENTS.md - Adamant Block (7 Days to Die V2.6 / V3.0 / V3.1 mod)
+# AGENTS.md - Adamant Block (7 Days to Die V3.4 mod)
 
 Onboarding for AI agents working on this repo. Read this first.
 
 ## What this project is
 
-A near-indestructible building block for **7 Days to Die V2.6 and V3.0 / V3.1** with four custom
+A near-indestructible building block for **7 Days to Die V3.4** with four custom
 mechanisms and two shippable editions.
 
 - **Tool-vs-weapon damage gate** (Harmony DLL): only tools mine it; weapons, zombies,
@@ -31,8 +31,7 @@ a non-matching xpath merely warns instead of throwing.
 ## Version compatibility - the rule
 
 **Never claim "works on 3.x".** Name only the game versions this mod release was actually
-launched on with its log checked. Currently: **2.6, 3.0.0, 3.0.1 and 3.1.0** (each verified in two
-tiers - headless smoke test plus a GUI run for the graphical path).
+launched on with its log checked. Currently: **3.4.0**.
 
 The list is per mod version and lives in four places that must stay in sync - the
 `TESTED_VERSIONS` env var in `.github/workflows/release.yml` (which feeds the GitHub release
@@ -86,7 +85,7 @@ matching `docs/` file in the same commit.
 - **Game**: `C:\Steam\steamapps\common\7 Days To Die` - `Assembly-CSharp.dll` under
   `7DaysToDie_Data\Managed\`, vanilla config under `Data\Config\`.
 - **Live deployment** (MO2 "Smorgasbord" modlist):
-  `C:\Modlists\Smorgasbord\mods\[NoDelete]Adamant Block\AdamantBlock\`
+  `C:\Modlists\Smorgasbord-3.4\mods\[NoDelete]Adamant Block\AdamantBlock\`
   - this is the running copy; the repo's `AdamantBlock/` mirrors it. **Keep them in sync.**
 - **Unity** (for the texture bundle only): `2022.3.62f2`, Built-in pipeline, Linear color space.
 - **Dependencies: none.** OcbCustomTextures is still installed in the modlist for *other*

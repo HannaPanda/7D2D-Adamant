@@ -60,7 +60,7 @@ mods. From C# the loader wants the `#<bundle path>?<asset>` form
 
 ## Tooling and path gotchas
 
-- The live MO2 folder is `C:\Modlists\Smorgasbord\mods\[NoDelete]Adamant Block\…`. The
+- The live MO2 folder is `C:\Modlists\Smorgasbord-3.4\mods\[NoDelete]Adamant Block\…`. The
   `[NoDelete]` brackets are wildcard characters in PowerShell - use `-LiteralPath`. In Python
   use the Windows form `C:/Modlists/...`, not the Git-Bash form `/c/...`.
 - PowerShell 5.1 `Compress-Archive` writes zip entries with backslash separators, which is

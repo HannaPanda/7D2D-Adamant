@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.7 - 2026-11-26
+
+### Changed
+
+- **Verified on 7 Days to Die V 3.4.0 (b10).** No gameplay changes: the block, the spike trap
+  and both editions work exactly as in 1.2.6.
+
 ## 1.2.6 - 2026-08-10
 
 ### Fixed
