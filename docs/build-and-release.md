@@ -72,10 +72,12 @@ CI (`.github/workflows/release.yml`) packages and publishes on a version tag:
 
 1. Re-run the compatibility matrix (above) and update `TESTED_VERSIONS`, README and the
    Nexus bbcode if the list changed.
-2. Bump `<Version>` in both `ModInfo.xml`, update `CHANGELOG.md`.
+2. Bump `<Version>` in both `ModInfo.xml`, update `CHANGELOG.md` and the Changelog section of
+   `nexus/description.bbcode`.
 3. `git tag vX.Y.Z && git push origin vX.Y.Z`.
 4. The workflow validates every XML, checks the installable structure, zips both editions
-   (mod folder at zip root, forward slashes) and publishes a GitHub Release with the zips.
+   (mod folder at zip root, forward slashes) and publishes a GitHub Release with the zips,
+   then publishes to Nexus (below).
 
 CI cannot build the DLL or the `.unity3d` bundle, so those two binaries are committed. Do not
 remove them or the release zips would be incomplete.
@@ -85,6 +87,21 @@ remove them or the release zips would be incomplete.
 The mod page and the two file entries are created **by hand once** (the v3 Upload API has no
 endpoint that creates a mod page). After that CI pushes every tag: Survival as the main file,
 Creative as optional. See AGENTS.md for the secret/variable names.
+
+Besides the two files, each tag also updates the mod page itself:
+
+- **Changelogs tab** - the Survival upload passes this version's `CHANGELOG.md` bullets in
+  full, one entry per line (`Build Nexus changelog entries` step, upload-action `changelog`
+  input). The endpoint only appends, so re-running a tag posts the same lines a second time.
+  These lines are read by players, so CHANGELOG bullets have to make sense to them.
+- **Description** - the last step PATCHes `nexus/description.bbcode` as the mod page
+  description (v3 `editMod`), stored exactly as if it had been saved in the website editor.
+  The repo file is the only place the description is edited, which is why its hand-maintained
+  Changelog section is part of the release commit. The endpoint takes the mod **UID**
+  (`NEXUS_MOD_UID` in `release.yml`, `1059 * 2^32 + mod number` for 7 Days to Die), not the
+  number in the page URL, and Nexus marks it Experimental - a red release run is worth
+  checking there first. Skipped, like the Survival upload, while
+  `NEXUSMODS_FILE_ID_SURVIVAL` is unset.
 
 ### File descriptions
 

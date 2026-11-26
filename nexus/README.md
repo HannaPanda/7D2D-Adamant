@@ -1,8 +1,10 @@
 # Nexus mod page assets
 
-`description.bbcode` is the source of truth for the Nexus Mods description. Edit it here,
-then paste it into the mod page's description field. The rich-text editor converts the
-BBCode correctly on paste, so no mode switch is needed.
+`description.bbcode` is the source of truth for the Nexus Mods description. Edit it here;
+every release tag sends it to the mod page as is (the `Update Nexus mod page description`
+step in `.github/workflows/release.yml`, v3 API), so a release needs no pasting. To change
+the page between releases, paste the file into the mod page's description field - the
+rich-text editor converts the BBCode correctly on paste, so no mode switch is needed.
 
 ## Images
 
@@ -49,8 +51,9 @@ Rules for what goes in this folder:
    the files and paste the resulting `https://staticdelivery.nexusmods.com/mods/.../images/....jpg`
    URLs instead; the layout is unchanged, only the four URLs differ.)
 
-**Push before pasting the description.** The URLs resolve only once `nexus/images/` is on
-GitHub - a description pasted from an unpushed working copy renders four broken images.
+**Push `main` before the description goes live**, pasted or sent by a tag. The URLs point at
+`main` and resolve only once `nexus/images/` is on GitHub - a description published from an
+unpushed working copy renders four broken images.
 
 Still missing, in rough order of value: **a blood-moon shot with zombies actually standing in
 the spike trap** (action sells traps; an empty row does not), and a crafting shot (ore → ingot
@@ -72,5 +75,7 @@ the spike trap** (action sells traps; an empty row does not), and a crafting sho
   Harmony vocabulary, no class or file names. Say what someone notices and what to do about it,
   keep the reason only where it affects a decision (a removed feature, a save-related risk), and
   say plainly when saves are safe. It is deliberately not the same text as `CHANGELOG.md` (repo,
-  technical) nor the per-file mini changelog CI generates for the Files tab. Old versions can be
-  trimmed once they are several releases back; the link to the full history covers them.
+  technical), the per-file mini changelog CI generates for the Files tab, nor the Changelogs tab,
+  which CI fills from the `CHANGELOG.md` bullets. Old versions can be trimmed once they are
+  several releases back; the link to the full history covers them. Update it **before** tagging:
+  the tag is what publishes it.

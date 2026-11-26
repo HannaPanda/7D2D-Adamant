@@ -142,11 +142,13 @@ matching `docs/` file in the same commit.
 
 ## Release flow
 
-1. Bump `<Version>` in **both** `ModInfo.xml`, update `CHANGELOG.md`.
+1. Bump `<Version>` in **both** `ModInfo.xml`, update `CHANGELOG.md` and the hand-maintained
+   Changelog section of `nexus/description.bbcode`.
 2. `git tag vX.Y.Z && git push origin vX.Y.Z`.
 3. CI validates XML, checks installable structure, builds MO2/Vortex zips (mod folder at
    zip root, forward slashes), publishes a GitHub Release with both zips, and then uploads
-   both to Nexus Mods.
+   both to Nexus Mods, appends the version's `CHANGELOG.md` bullets to the mod page's
+   Changelogs tab and replaces the mod page description with `nexus/description.bbcode`.
 
 **Nexus automation** (Settings → Secrets and variables → Actions):
 
@@ -166,7 +168,10 @@ sentences (~180 chars, max 6 bullets) reach Nexus. Details in
 The tag becomes the Nexus version with the leading `v` stripped. Both upload steps are
 skipped while their variable is unset, so tagging works before the mod page exists —
 setting/clearing the variable is the on/off switch. Only the Survival step sets
-`update_mod_version`, so the mod page version tracks the main file.
+`update_mod_version`, so the mod page version tracks the main file; it also carries the
+Changelogs-tab entries, and the description step hangs off the same variable. The
+description endpoint wants the mod UID (`NEXUS_MOD_UID` in `release.yml`), not the number in
+the page URL, and is marked Experimental by Nexus.
 - CI **cannot** build `AdamantBlock.dll` (needs the game's `Assembly-CSharp.dll`) or
   `adamant.unity3d` (needs Unity) - those binaries stay committed. **Do not remove them.**
 - **Nexus upload: the FIRST one is manual, updates can be automated.** Nexus Mods has a v3
